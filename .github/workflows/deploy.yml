@@ -60,17 +60,19 @@ jobs:
           DOCKERHUB_USERNAME=${{ secrets.DOCKERHUB_USERNAME }}
           EOF
 
-      - name: Setup SSH
+      - name: Setup SSH with proper key handling
+        uses: webfactory/ssh-agent@v0.8.0
+        with:
+          ssh-private-key: ${{ secrets.LIGHTSAIL_SSH_KEY }}
+      
+      - name: Add server to known hosts
         run: |
           mkdir -p ~/.ssh
-          echo "${{ secrets.LIGHTSAIL_SSH_KEY }}" > ~/.ssh/lightsail.pem
-          chmod 600 ~/.ssh/lightsail.pem
           ssh-keyscan -H ${{ secrets.LIGHTSAIL_HOST }} >> ~/.ssh/known_hosts 2>&1 || true
-          echo "StrictHostKeyChecking=no" >> ~/.ssh/config
 
       - name: Copy application files to server
         run: |
-          rsync -avz -e "ssh -i ~/.ssh/lightsail.pem" \
+          rsync -avz -e "ssh -o StrictHostKeyChecking=no" \
             --exclude 'node_modules' \
             --exclude '.git' \
             --exclude 'scripts/venv' \
@@ -80,7 +82,7 @@ jobs:
 
       - name: Deploy on server
         run: |
-          ssh -i ~/.ssh/lightsail.pem ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} << 'ENDSSH'
+          ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} << 'ENDSSH'
             cd ~/aquarium
             
             # Rename .env.production to .env
@@ -105,11 +107,10 @@ jobs:
       - name: Verify deployment
         run: |
           sleep 10
-          ssh -i ~/.ssh/lightsail.pem ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} \
+          ssh -o StrictHostKeyChecking=no ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} \
             "cd ~/aquarium && docker-compose -f docker-compose.prod.yml ps"
 
       - name: Cleanup
         if: always()
         run: |
-          rm -f ~/.ssh/lightsail.pem
           rm -f .env.production
