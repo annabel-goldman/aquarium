@@ -1,0 +1,72 @@
+name: CI Tests
+
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches-ignore:
+      - main
+
+jobs:
+  test-backend:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install backend dependencies
+        run: |
+          cd backend
+          pip install -r requirements.txt
+
+      - name: Check Python syntax
+        run: |
+          cd backend
+          python -m py_compile app/*.py app/routers/*.py
+
+  test-frontend:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Install frontend dependencies
+        run: |
+          cd frontend
+          npm ci
+
+      - name: Build frontend
+        run: |
+          cd frontend
+          npm run build
+
+  docker-build-test:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Test production Docker builds
+        run: |
+          # Test backend build
+          cd backend
+          docker build -f Dockerfile.prod -t aquarium-backend-test .
+          
+          # Test frontend build
+          cd ../frontend
+          docker build -f Dockerfile.prod -t aquarium-frontend-test --build-arg VITE_API_BASE_URL=http://test/api .
+

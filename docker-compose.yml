@@ -1,0 +1,63 @@
+version: '3.8'
+
+services:
+  # MongoDB database
+  mongodb:
+    image: mongo:7.0
+    container_name: aquarium-v2-mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - aquarium-network
+    command: mongod --quiet
+
+  # FastAPI backend
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: aquarium-v2-backend
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend/app:/app/app
+    environment:
+      - MONGO_URI=mongodb://mongodb:27017/aquarium_v2
+      - JWT_SECRET=dev-secret-change-in-production
+      - ALLOWED_ORIGIN=http://localhost:5173
+    depends_on:
+      - mongodb
+    networks:
+      - aquarium-network
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+
+  # React frontend
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: aquarium-v2-frontend
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend/src:/app/src
+      - ./frontend/index.html:/app/index.html
+      - ./frontend/public:/app/public
+    environment:
+      - VITE_API_BASE_URL=http://localhost:8000/api
+    depends_on:
+      - backend
+    networks:
+      - aquarium-network
+    command: npm run dev -- --host
+
+networks:
+  aquarium-network:
+    driver: bridge
+
+volumes:
+  mongodb_data:
+    driver: local
+

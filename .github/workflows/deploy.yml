@@ -1,0 +1,71 @@
+name: Deploy to AWS Lightsail
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:  # Allow manual trigger
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Create .env.production file
+        run: |
+          cat > .env.production << EOF
+          MONGO_ROOT_USERNAME=${{ secrets.MONGO_ROOT_USERNAME }}
+          MONGO_ROOT_PASSWORD=${{ secrets.MONGO_ROOT_PASSWORD }}
+          JWT_SECRET=${{ secrets.JWT_SECRET }}
+          VITE_API_BASE_URL=${{ secrets.VITE_API_BASE_URL }}
+          EOF
+
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.LIGHTSAIL_SSH_KEY }}" > ~/.ssh/lightsail.pem
+          chmod 600 ~/.ssh/lightsail.pem
+          ssh-keyscan -H ${{ secrets.LIGHTSAIL_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Deploy to Lightsail
+        run: |
+          # Copy files to server
+          rsync -avz -e "ssh -i ~/.ssh/lightsail.pem" \
+            --exclude 'node_modules' \
+            --exclude '.git' \
+            --exclude 'scripts/venv' \
+            --exclude '__pycache__' \
+            ./ ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }}:~/aquarium/
+
+          # Deploy on server
+          ssh -i ~/.ssh/lightsail.pem ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} << 'ENDSSH'
+            cd ~/aquarium
+            
+            # Stop existing containers
+            docker-compose -f docker-compose.prod.yml down || true
+            
+            # Build and start new containers
+            docker-compose -f docker-compose.prod.yml build
+            docker-compose -f docker-compose.prod.yml up -d
+            
+            # Show status
+            docker-compose -f docker-compose.prod.yml ps
+            
+            echo "Deployment complete!"
+          ENDSSH
+
+      - name: Verify deployment
+        run: |
+          sleep 10
+          ssh -i ~/.ssh/lightsail.pem ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} \
+            "cd ~/aquarium && docker-compose -f docker-compose.prod.yml ps"
+
+      - name: Cleanup
+        if: always()
+        run: |
+          rm -f ~/.ssh/lightsail.pem
+          rm -f .env.production
+

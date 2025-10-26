@@ -1,0 +1,29 @@
+# Environment
+.env
+.env.local
+.env.production
+*.pem
+
+# Python
+__pycache__/
+*.pyc
+venv/
+env/
+
+# Node
+node_modules/
+dist/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+
+# SSL/Certbot
+certbot/
+
+# Scripts folder
+scripts/

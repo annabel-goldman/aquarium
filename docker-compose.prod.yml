@@ -1,0 +1,62 @@
+version: '3.8'
+
+services:
+  # MongoDB database with authentication
+  mongodb:
+    image: mongo:7.0
+    container_name: aquarium-mongodb
+    restart: unless-stopped
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_ROOT_USERNAME}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_ROOT_PASSWORD}
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - aquarium-network
+    command: mongod --quiet
+
+  # FastAPI backend
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.prod
+    container_name: aquarium-backend
+    restart: unless-stopped
+    environment:
+      - MONGO_URI=mongodb://${MONGO_ROOT_USERNAME}:${MONGO_ROOT_PASSWORD}@mongodb:27017/aquarium_v2?authSource=admin
+      - JWT_SECRET=${JWT_SECRET}
+      - ENVIRONMENT=production
+    depends_on:
+      - mongodb
+    networks:
+      - aquarium-network
+
+  # Nginx reverse proxy and frontend server
+  nginx:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.prod
+      args:
+        - VITE_API_BASE_URL=${VITE_API_BASE_URL}
+    container_name: aquarium-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./certbot/conf:/etc/letsencrypt:ro
+      - ./certbot/www:/var/www/certbot:ro
+    depends_on:
+      - backend
+    networks:
+      - aquarium-network
+
+networks:
+  aquarium-network:
+    driver: bridge
+
+volumes:
+  mongodb_data:
+    driver: local
+
