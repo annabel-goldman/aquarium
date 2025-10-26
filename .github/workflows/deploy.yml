@@ -44,6 +44,9 @@ jobs:
           ssh -i ~/.ssh/lightsail.pem ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} << 'ENDSSH'
             cd ~/aquarium
             
+            # Rename .env.production to .env so docker-compose can find it
+            mv .env.production .env
+            
             # Stop existing containers
             docker-compose -f docker-compose.prod.yml down || true
             
