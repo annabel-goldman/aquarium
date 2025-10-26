@@ -14,6 +14,39 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Generate package-lock.json
+        run: |
+          cd frontend
+          npm install
+          cd ..
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Build Backend Docker Image
+        run: |
+          cd backend
+          docker build -f Dockerfile.prod -t aquarium-backend:latest .
+          cd ..
+
+      - name: Build Frontend/Nginx Docker Image
+        run: |
+          cd frontend
+          docker build -f Dockerfile.prod \
+            --build-arg VITE_API_BASE_URL=${{ secrets.VITE_API_BASE_URL }} \
+            -t aquarium-nginx:latest .
+          cd ..
+
+      - name: Save Docker Images
+        run: |
+          docker save aquarium-backend:latest | gzip > backend-image.tar.gz
+          docker save aquarium-nginx:latest | gzip > nginx-image.tar.gz
+
       - name: Create .env.production file
         run: |
           cat > .env.production << EOF
@@ -30,25 +63,41 @@ jobs:
           chmod 600 ~/.ssh/lightsail.pem
           ssh-keyscan -H ${{ secrets.LIGHTSAIL_HOST }} >> ~/.ssh/known_hosts
 
-      - name: Deploy to Lightsail
+      - name: Copy files and images to server
         run: |
-          # Copy files to server
+          # Copy Docker images
+          scp -i ~/.ssh/lightsail.pem backend-image.tar.gz ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }}:~/
+          scp -i ~/.ssh/lightsail.pem nginx-image.tar.gz ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }}:~/
+
+          # Copy application files
           rsync -avz -e "ssh -i ~/.ssh/lightsail.pem" \
             --exclude 'node_modules' \
             --exclude '.git' \
             --exclude 'scripts/venv' \
             --exclude '__pycache__' \
+            --exclude 'backend-image.tar.gz' \
+            --exclude 'nginx-image.tar.gz' \
             ./ ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }}:~/aquarium/
 
-          # Deploy on server
+      - name: Deploy on server
+        run: |
           ssh -i ~/.ssh/lightsail.pem ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} << 'ENDSSH'
+            # Load Docker images
+            docker load < ~/backend-image.tar.gz
+            docker load < ~/nginx-image.tar.gz
+            
+            # Clean up image files
+            rm ~/backend-image.tar.gz ~/nginx-image.tar.gz
+            
             cd ~/aquarium
+            
+            # Rename .env.production to .env
+            mv .env.production .env
             
             # Stop existing containers
             docker-compose -f docker-compose.prod.yml down || true
             
-            # Build and start new containers
-            docker-compose -f docker-compose.prod.yml build
+            # Start containers (no build needed - images already loaded)
             docker-compose -f docker-compose.prod.yml up -d
             
             # Show status

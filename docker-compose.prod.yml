@@ -17,6 +17,7 @@ services:
 
   # FastAPI backend
   backend:
+    image: aquarium-backend:latest
     build:
       context: ./backend
       dockerfile: Dockerfile.prod
@@ -33,6 +34,7 @@ services:
 
   # Nginx reverse proxy and frontend server
   nginx:
+    image: aquarium-nginx:latest
     build:
       context: ./frontend
       dockerfile: Dockerfile.prod
