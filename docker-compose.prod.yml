@@ -17,7 +17,9 @@ services:
 
   # FastAPI backend
   backend:
-    image: ${DOCKERHUB_USERNAME}/aquarium-backend:latest
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.prod
     container_name: aquarium-backend
     restart: unless-stopped
     environment:
@@ -31,7 +33,11 @@ services:
 
   # Nginx reverse proxy and frontend server
   nginx:
-    image: ${DOCKERHUB_USERNAME}/aquarium-nginx:latest
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.prod
+      args:
+        VITE_API_BASE_URL: ${VITE_API_BASE_URL}
     container_name: aquarium-nginx
     restart: unless-stopped
     ports:
@@ -53,4 +59,3 @@ networks:
 volumes:
   mongodb_data:
     driver: local
-
