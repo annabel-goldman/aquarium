@@ -15,11 +15,9 @@ services:
       - aquarium-network
     command: mongod --quiet
 
-  # FastAPI backend
+  # FastAPI backend (uses pre-built image from GitHub Container Registry)
   backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile.prod
+    image: ${DOCKER_REGISTRY}/aquarium-backend:latest
     container_name: aquarium-backend
     restart: unless-stopped
     environment:
@@ -31,13 +29,9 @@ services:
     networks:
       - aquarium-network
 
-  # Nginx reverse proxy and frontend server
+  # Nginx reverse proxy and frontend server (uses pre-built image)
   nginx:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile.prod
-      args:
-        VITE_API_BASE_URL: ${VITE_API_BASE_URL}
+    image: ${DOCKER_REGISTRY}/aquarium-nginx:latest
     container_name: aquarium-nginx
     restart: unless-stopped
     ports:
