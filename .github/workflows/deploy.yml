@@ -20,6 +20,7 @@ jobs:
           host: ${{ secrets.LIGHTSAIL_HOST }}
           username: ${{ secrets.LIGHTSAIL_USER }}
           key: ${{ secrets.LIGHTSAIL_SSH_KEY }}
+          command_timeout: 20m
           script: |
             # Navigate to app directory
             cd ~/aquarium || exit 1
@@ -37,7 +38,7 @@ jobs:
             
             # Build and deploy with docker-compose
             docker-compose -f docker-compose.prod.yml down
-            docker-compose -f docker-compose.prod.yml build --no-cache
+            docker-compose -f docker-compose.prod.yml build
             docker-compose -f docker-compose.prod.yml up -d
             
             # Clean up old images
