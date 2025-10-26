@@ -28,24 +28,27 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
-      - name: Build Backend Docker Image
+      - name: Login to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and Push Backend Image
         run: |
           cd backend
-          docker build -f Dockerfile.prod -t aquarium-backend:latest .
+          docker build -f Dockerfile.prod -t ${{ secrets.DOCKERHUB_USERNAME }}/aquarium-backend:latest .
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/aquarium-backend:latest
           cd ..
 
-      - name: Build Frontend/Nginx Docker Image
+      - name: Build and Push Frontend/Nginx Image
         run: |
           cd frontend
           docker build -f Dockerfile.prod \
             --build-arg VITE_API_BASE_URL=${{ secrets.VITE_API_BASE_URL }} \
-            -t aquarium-nginx:latest .
+            -t ${{ secrets.DOCKERHUB_USERNAME }}/aquarium-nginx:latest .
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/aquarium-nginx:latest
           cd ..
-
-      - name: Save Docker Images
-        run: |
-          docker save aquarium-backend:latest | gzip > backend-image.tar.gz
-          docker save aquarium-nginx:latest | gzip > nginx-image.tar.gz
 
       - name: Create .env.production file
         run: |
@@ -54,6 +57,7 @@ jobs:
           MONGO_ROOT_PASSWORD=${{ secrets.MONGO_ROOT_PASSWORD }}
           JWT_SECRET=${{ secrets.JWT_SECRET }}
           VITE_API_BASE_URL=${{ secrets.VITE_API_BASE_URL }}
+          DOCKERHUB_USERNAME=${{ secrets.DOCKERHUB_USERNAME }}
           EOF
 
       - name: Setup SSH
@@ -64,42 +68,19 @@ jobs:
           ssh-keyscan -H ${{ secrets.LIGHTSAIL_HOST }} >> ~/.ssh/known_hosts 2>&1 || true
           echo "StrictHostKeyChecking=no" >> ~/.ssh/config
 
-      - name: Copy files and images to server
+      - name: Copy application files to server
         run: |
-          # Wait a bit to avoid rate limiting
-          sleep 5
-          
-          # Copy Docker images with retry
-          for i in 1 2 3; do
-            scp -i ~/.ssh/lightsail.pem -o ConnectTimeout=30 backend-image.tar.gz ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }}:~/ && break || sleep 10
-          done
-          
-          for i in 1 2 3; do
-            scp -i ~/.ssh/lightsail.pem -o ConnectTimeout=30 nginx-image.tar.gz ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }}:~/ && break || sleep 10
-          done
-
-          # Copy application files
-          for i in 1 2 3; do
-            rsync -avz -e "ssh -i ~/.ssh/lightsail.pem -o ConnectTimeout=30" \
-              --exclude 'node_modules' \
-              --exclude '.git' \
-              --exclude 'scripts/venv' \
-              --exclude '__pycache__' \
-              --exclude 'backend-image.tar.gz' \
-              --exclude 'nginx-image.tar.gz' \
-              ./ ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }}:~/aquarium/ && break || sleep 10
-          done
+          rsync -avz -e "ssh -i ~/.ssh/lightsail.pem" \
+            --exclude 'node_modules' \
+            --exclude '.git' \
+            --exclude 'scripts/venv' \
+            --exclude '__pycache__' \
+            --exclude 'frontend/node_modules' \
+            ./ ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }}:~/aquarium/
 
       - name: Deploy on server
         run: |
-          ssh -i ~/.ssh/lightsail.pem -o ConnectTimeout=30 -o ServerAliveInterval=60 ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} << 'ENDSSH'
-            # Load Docker images
-            docker load < ~/backend-image.tar.gz
-            docker load < ~/nginx-image.tar.gz
-            
-            # Clean up image files
-            rm ~/backend-image.tar.gz ~/nginx-image.tar.gz
-            
+          ssh -i ~/.ssh/lightsail.pem ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} << 'ENDSSH'
             cd ~/aquarium
             
             # Rename .env.production to .env
@@ -108,7 +89,11 @@ jobs:
             # Stop existing containers
             docker-compose -f docker-compose.prod.yml down || true
             
-            # Start containers (no build needed - images already loaded)
+            # Pull latest images from Docker Hub (super lightweight!)
+            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/aquarium-backend:latest
+            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/aquarium-nginx:latest
+            
+            # Start containers
             docker-compose -f docker-compose.prod.yml up -d
             
             # Show status
@@ -120,7 +105,7 @@ jobs:
       - name: Verify deployment
         run: |
           sleep 10
-          ssh -i ~/.ssh/lightsail.pem -o ConnectTimeout=30 ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} \
+          ssh -i ~/.ssh/lightsail.pem ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} \
             "cd ~/aquarium && docker-compose -f docker-compose.prod.yml ps"
 
       - name: Cleanup
@@ -128,4 +113,3 @@ jobs:
         run: |
           rm -f ~/.ssh/lightsail.pem
           rm -f .env.production
-
