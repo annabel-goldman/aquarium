@@ -66,23 +66,33 @@ jobs:
 
       - name: Copy files and images to server
         run: |
-          # Copy Docker images
-          scp -i ~/.ssh/lightsail.pem backend-image.tar.gz ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }}:~/
-          scp -i ~/.ssh/lightsail.pem nginx-image.tar.gz ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }}:~/
+          # Wait a bit to avoid rate limiting
+          sleep 5
+          
+          # Copy Docker images with retry
+          for i in 1 2 3; do
+            scp -i ~/.ssh/lightsail.pem -o ConnectTimeout=30 backend-image.tar.gz ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }}:~/ && break || sleep 10
+          done
+          
+          for i in 1 2 3; do
+            scp -i ~/.ssh/lightsail.pem -o ConnectTimeout=30 nginx-image.tar.gz ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }}:~/ && break || sleep 10
+          done
 
           # Copy application files
-          rsync -avz -e "ssh -i ~/.ssh/lightsail.pem" \
-            --exclude 'node_modules' \
-            --exclude '.git' \
-            --exclude 'scripts/venv' \
-            --exclude '__pycache__' \
-            --exclude 'backend-image.tar.gz' \
-            --exclude 'nginx-image.tar.gz' \
-            ./ ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }}:~/aquarium/
+          for i in 1 2 3; do
+            rsync -avz -e "ssh -i ~/.ssh/lightsail.pem -o ConnectTimeout=30" \
+              --exclude 'node_modules' \
+              --exclude '.git' \
+              --exclude 'scripts/venv' \
+              --exclude '__pycache__' \
+              --exclude 'backend-image.tar.gz' \
+              --exclude 'nginx-image.tar.gz' \
+              ./ ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }}:~/aquarium/ && break || sleep 10
+          done
 
       - name: Deploy on server
         run: |
-          ssh -i ~/.ssh/lightsail.pem ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} << 'ENDSSH'
+          ssh -i ~/.ssh/lightsail.pem -o ConnectTimeout=30 -o ServerAliveInterval=60 ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} << 'ENDSSH'
             # Load Docker images
             docker load < ~/backend-image.tar.gz
             docker load < ~/nginx-image.tar.gz
@@ -110,7 +120,7 @@ jobs:
       - name: Verify deployment
         run: |
           sleep 10
-          ssh -i ~/.ssh/lightsail.pem ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} \
+          ssh -i ~/.ssh/lightsail.pem -o ConnectTimeout=30 ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} \
             "cd ~/aquarium && docker-compose -f docker-compose.prod.yml ps"
 
       - name: Cleanup
