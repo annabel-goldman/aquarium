@@ -35,7 +35,7 @@ async def create_session(request: Request, session_data: SessionCreate, response
 
 
 @router.post("/sessions/register", response_model=SessionResponse)
-@limiter.limit("3/hour")
+@limiter.limit("10/minute")
 async def register_session(request: Request, session_data: SessionCreate, response: Response):
     """Register: Create new user with password and default tank."""
     username = session_data.username
