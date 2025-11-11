@@ -18,7 +18,6 @@ services:
       mongod 
       --quiet
       --wiredTigerCacheSizeGB 0.25
-      --setParameter maxBSONObjectSize=4194304
     # Resource limits - prevent MongoDB from using too much RAM
     deploy:
       resources:
