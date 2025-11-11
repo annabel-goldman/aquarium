@@ -1,7 +1,7 @@
 version: '3.8'
 
 services:
-  # MongoDB database with authentication
+  # MongoDB database with authentication and resource limits
   mongodb:
     image: mongo:7.0
     container_name: aquarium-mongodb
@@ -13,7 +13,25 @@ services:
       - mongodb_data:/data/db
     networks:
       - aquarium-network
-    command: mongod --quiet
+    # Optimize MongoDB for low memory environment
+    command: >
+      mongod 
+      --quiet
+      --wiredTigerCacheSizeGB 0.25
+      --setParameter maxBSONObjectSize=4194304
+    # Resource limits - prevent MongoDB from using too much RAM
+    deploy:
+      resources:
+        limits:
+          memory: 250M
+        reservations:
+          memory: 150M
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 
   # FastAPI backend (uses pre-built image from GitHub Container Registry)
   backend:
@@ -25,9 +43,23 @@ services:
       - JWT_SECRET=${JWT_SECRET}
       - ENVIRONMENT=production
     depends_on:
-      - mongodb
+      mongodb:
+        condition: service_healthy
     networks:
       - aquarium-network
+    # Resource limits for backend
+    deploy:
+      resources:
+        limits:
+          memory: 150M
+        reservations:
+          memory: 50M
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 
   # Nginx reverse proxy and frontend server (uses pre-built image)
   nginx:
@@ -42,9 +74,23 @@ services:
       - ./certbot/conf:/etc/letsencrypt:ro
       - ./certbot/www:/var/www/certbot:ro
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
     networks:
       - aquarium-network
+    # Resource limits for nginx
+    deploy:
+      resources:
+        limits:
+          memory: 50M
+        reservations:
+          memory: 20M
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
 
 networks:
   aquarium-network:
