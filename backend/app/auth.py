@@ -32,14 +32,14 @@ def verify_session_token(token: str) -> Optional[str]:
 def set_session_cookie(response: Response, username: str):
     """Set HttpOnly session cookie"""
     token = create_session_token(username)
-    # Secure cookies only work with HTTPS - set to False for HTTP deployment
+    # Secure cookies - enabled for HTTPS (aquarium.annabelgoldman.com)
     response.set_cookie(
         key=COOKIE_NAME,
         value=token,
         httponly=True,
         samesite="lax",
         max_age=30 * 24 * 60 * 60,  # 30 days
-        secure=False  # Set to True when using HTTPS
+        secure=True  # HTTPS enabled!
     )
 
 
