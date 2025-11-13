@@ -1,4 +1,4 @@
-name: Deploy to AWS Lightsail Working?
+name: Deploy to AWS Lightsail
 
 on:
   push:
