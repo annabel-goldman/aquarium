@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { FISH_SPECIES, DEFAULT_COLORS } from '../config/constants';
+import { Modal, Button, Input, Select, Label } from './ui';
 
 /**
  * Add Fish Modal - species list generated from config
@@ -36,29 +37,23 @@ export function AddFishModal({ isOpen, onClose, onSubmit, currentFishCount = 0 }
     setLoading(false);
   };
 
-  if (!isOpen) return null;
-
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-        <div className="p-6">
-          <h2 className="text-2xl font-bold text-gray-800 mb-4">Add New Fish</h2>
-          <div className="text-sm text-gray-600 mb-4">
-            {currentFishCount >= 30 ? (
-              <div className="text-red-600">Tank is full! Maximum of 30 fish reached.</div>
-            ) : (
-              <div>Fish slots remaining: {30 - currentFishCount} of 30</div>
-            )}
-          </div>
+    <Modal isOpen={isOpen} onClose={onClose}>
+      <Modal.Body className="space-y-4">
+        <Modal.Title>Add New Fish</Modal.Title>
+        <div className="text-sm text-gray-600">
+          {currentFishCount >= 30 ? (
+            <div className="text-red-600">Tank is full! Maximum of 30 fish reached.</div>
+          ) : (
+            <div>Fish slots remaining: {30 - currentFishCount} of 30</div>
+          )}
+        </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label htmlFor="species" className="block text-sm font-medium text-gray-700 mb-2">
-                Species
-              </label>
-              <select
+              <Label htmlFor="species">Species</Label>
+              <Select
                 id="species"
-                className="input-field"
                 value={formData.species}
                 onChange={(e) => setFormData({ ...formData, species: e.target.value })}
                 required
@@ -68,17 +63,14 @@ export function AddFishModal({ isOpen, onClose, onSubmit, currentFishCount = 0 }
                     {species}
                   </option>
                 ))}
-              </select>
+              </Select>
             </div>
 
             <div>
-              <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
-                Name
-              </label>
-              <input
+              <Label htmlFor="name">Name</Label>
+              <Input
                 id="name"
                 type="text"
-                className="input-field"
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 placeholder="Bubbles"
@@ -88,9 +80,7 @@ export function AddFishModal({ isOpen, onClose, onSubmit, currentFishCount = 0 }
             </div>
 
             <div>
-              <label htmlFor="color" className="block text-sm font-medium text-gray-700 mb-2">
-                Color
-              </label>
+              <Label htmlFor="color">Color</Label>
               <div className="flex items-center gap-3 mb-2">
                 <input
                   id="color"
@@ -99,9 +89,9 @@ export function AddFishModal({ isOpen, onClose, onSubmit, currentFishCount = 0 }
                   value={formData.color}
                   onChange={(e) => setFormData({ ...formData, color: e.target.value })}
                 />
-                <input
+                <Input
                   type="text"
-                  className="input-field flex-1"
+                  className="flex-1"
                   value={formData.color}
                   onChange={(e) => setFormData({ ...formData, color: e.target.value })}
                   pattern="^#[0-9A-Fa-f]{6}$"
@@ -123,9 +113,7 @@ export function AddFishModal({ isOpen, onClose, onSubmit, currentFishCount = 0 }
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Size
-              </label>
+              <Label>Size</Label>
               <div className="flex gap-4">
                 {['sm', 'md', 'lg'].map((size) => (
                   <label key={size} className="flex items-center cursor-pointer">
@@ -152,26 +140,26 @@ export function AddFishModal({ isOpen, onClose, onSubmit, currentFishCount = 0 }
             )}
 
             <div className="flex gap-3 pt-2">
-              <button
+              <Button
                 type="submit"
-                className="btn-primary flex-1"
+                variant="primary"
+                className="flex-1"
                 disabled={loading || currentFishCount >= 30}
               >
                 {loading ? 'Adding...' : 'Add Fish'}
-              </button>
-              <button
+              </Button>
+              <Button
                 type="button"
-                className="btn-secondary"
+                variant="secondary"
                 onClick={onClose}
                 disabled={loading}
               >
                 Cancel
-              </button>
+              </Button>
             </div>
           </form>
-        </div>
-      </div>
-    </div>
+      </Modal.Body>
+    </Modal>
   );
 }
 

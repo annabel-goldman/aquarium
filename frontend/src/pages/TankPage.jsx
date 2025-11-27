@@ -5,6 +5,7 @@ import { useFishAnimation } from '../hooks/useFishAnimation';
 import { TankView } from '../components/TankView';
 import { FishList } from '../components/FishList';
 import { AddFishModal } from '../components/AddFishModal';
+import { Button } from '../components/ui';
 
 export function TankPage({ username, onLogout }) {
   const { tankId } = useParams();
@@ -23,7 +24,7 @@ export function TankPage({ username, onLogout }) {
 
   if (loading) {
     return (
-      <div className="fullscreen-tank flex items-center justify-center">
+      <div className="fixed inset-0 w-screen h-screen overflow-hidden flex items-center justify-center">
         <div className="text-xl text-white">Loading your tank...</div>
       </div>
     );
@@ -31,47 +32,47 @@ export function TankPage({ username, onLogout }) {
 
   if (error) {
     return (
-      <div className="fullscreen-tank flex items-center justify-center">
+      <div className="fixed inset-0 w-screen h-screen overflow-hidden flex items-center justify-center">
         <div className="text-xl text-red-200">Error: {error}</div>
       </div>
     );
   }
 
   return (
-    <div className="fullscreen-tank">
+    <div className="fixed inset-0 w-screen h-screen overflow-hidden">
       <TankView fish={animatedFish} showNametags={showNametags} />
 
       {/* Back to Aquarium Button */}
-      <button
+      <Button
         onClick={() => navigate('/aquarium')}
-        className="back-button"
+        back={true}
         title="Back to Aquariums"
       >
         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
         </svg>
-      </button>
+      </Button>
 
       {/* Floating Button */}
-      <button
+      <Button
         onClick={() => setIsControlsOpen(true)}
-        className="floating-button"
+        floating={true}
         title="Tank Controls"
       >
         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
         </svg>
-      </button>
+      </Button>
 
       {/* Controls Panel */}
       {isControlsOpen && (
-        <div className="controls-overlay" onClick={() => setIsControlsOpen(false)}>
-          <div className="controls-panel" onClick={(e) => e.stopPropagation()}>
-            <div className="controls-header">
+        <div className="fixed inset-0 bg-black/50 z-50 flex justify-end" onClick={() => setIsControlsOpen(false)}>
+          <div className="bg-white w-full max-w-md h-screen overflow-y-auto shadow-xl animate-slide-in" onClick={(e) => e.stopPropagation()}>
+            <div className="flex justify-between items-center px-6 py-4 border-b border-gray-200">
               <h2 className="text-xl font-bold text-gray-800">Tank Controls</h2>
               <button
                 onClick={() => setIsControlsOpen(false)}
-                className="text-gray-500 hover:text-gray-700"
+                className="text-gray-500 hover:text-gray-700 transition-colors"
               >
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -79,16 +80,17 @@ export function TankPage({ username, onLogout }) {
               </button>
             </div>
 
-            <div className="controls-content">
-              <button
+            <div className="px-6 py-4">
+              <Button
                 onClick={() => {
                   setIsAddFishModalOpen(true);
                   setIsControlsOpen(false);
                 }}
-                className="btn-primary w-full text-lg py-3 mb-4"
+                variant="primary"
+                className="w-full text-lg py-3 mb-4"
               >
                 + Add Fish
-              </button>
+              </Button>
 
               <button
                 onClick={() => setShowNametags(!showNametags)}
@@ -112,25 +114,27 @@ export function TankPage({ username, onLogout }) {
 
               <FishList fish={tank?.fish || []} onDeleteFish={handleDeleteFish} />
 
-              <button
+              <Button
                 onClick={() => navigate('/aquarium')}
-                className="btn-secondary w-full mt-4"
+                variant="secondary"
+                className="w-full mt-4"
               >
                 ← Back to Aquariums
-              </button>
+              </Button>
 
               {onLogout && (
-                <button
+                <Button
                   onClick={async () => {
                     const result = await onLogout();
                     if (result.success) {
                       navigate('/login');
                     }
                   }}
-                  className="btn-secondary w-full mt-2"
+                  variant="secondary"
+                  className="w-full mt-2"
                 >
                   Logout
-                </button>
+                </Button>
               )}
             </div>
           </div>

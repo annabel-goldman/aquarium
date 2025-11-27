@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { LIMITS } from '../config/constants';
+import { Button, Input, Label } from './ui';
 
 export function LoginForm({ onLogin, onRegister }) {
   const [username, setUsername] = useState('');
@@ -20,7 +21,7 @@ export function LoginForm({ onLogin, onRegister }) {
       : await onLogin(username, password);
     
     if (result.success) {
-      navigate('/tank');
+      navigate('/aquarium');
     } else {
       setError(result.error || `Failed to ${isRegistering ? 'register' : 'login'}`);
       setLoading(false);
@@ -28,7 +29,7 @@ export function LoginForm({ onLogin, onRegister }) {
   };
 
   return (
-    <div className="login-container flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-purple-600 via-purple-700 to-purple-800 flex items-center justify-center p-4">
       <div className="bg-white rounded-lg shadow-xl p-8 w-full max-w-md">
         <h1 className="text-3xl font-bold text-center mb-2 text-gray-800">
           🐠 Aquarium V2
@@ -39,13 +40,10 @@ export function LoginForm({ onLogin, onRegister }) {
         
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-2">
-              Username
-            </label>
-            <input
+            <Label htmlFor="username">Username</Label>
+            <Input
               id="username"
               type="text"
-              className="input-field"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               placeholder="annabel"
@@ -60,13 +58,10 @@ export function LoginForm({ onLogin, onRegister }) {
           </div>
 
           <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
-              Password
-            </label>
-            <input
+            <Label htmlFor="password">Password</Label>
+            <Input
               id="password"
               type="password"
-              className="input-field"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••"
@@ -86,13 +81,14 @@ export function LoginForm({ onLogin, onRegister }) {
             </div>
           )}
 
-          <button
+          <Button
             type="submit"
-            className="btn-primary w-full"
+            variant="primary"
+            className="w-full"
             disabled={loading}
           >
             {loading ? 'Loading...' : (isRegistering ? 'Create Account' : 'Sign In')}
-          </button>
+          </Button>
 
           <div className="text-center">
             <button
