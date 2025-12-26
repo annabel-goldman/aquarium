@@ -1,0 +1,73 @@
+/* ============================================
+   AQUARIUM PAGE STYLES
+   Styles for the main aquarium/tanks list page
+   ============================================ */
+
+.aquarium-page {
+  @apply fixed inset-0 bg-gradient-to-b from-blue-400 via-blue-500 to-blue-700 overflow-y-auto;
+}
+
+.aquarium-header {
+  @apply fixed top-0 left-0 right-0 z-30 pointer-events-none;
+}
+
+.aquarium-header-content {
+  @apply max-w-7xl mx-auto px-6 py-6;
+}
+
+.aquarium-title-wrapper {
+  @apply flex justify-center items-center;
+}
+
+.aquarium-title-group {
+  @apply flex items-center gap-4;
+}
+
+.aquarium-title {
+  @apply text-3xl font-bold text-white drop-shadow-lg;
+}
+
+.aquarium-content {
+  @apply pt-32 pb-12 px-6;
+}
+
+.aquarium-content-inner {
+  @apply max-w-7xl mx-auto;
+}
+
+/* Empty state */
+.empty-state {
+  @apply bg-white/95 backdrop-blur-sm rounded-2xl shadow-2xl p-16 text-center max-w-2xl mx-auto;
+}
+
+.empty-state-icon {
+  @apply text-8xl mb-6;
+}
+
+.empty-state-title {
+  @apply text-3xl font-bold text-gray-800 mb-4;
+}
+
+.empty-state-text {
+  @apply text-gray-600 mb-8 text-lg;
+}
+
+/* Tanks grid */
+.tanks-grid {
+  @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8;
+}
+
+/* Max tanks message */
+.max-tanks-message {
+  @apply mt-8 text-center;
+}
+
+.max-tanks-badge {
+  @apply inline-block bg-white/20 backdrop-blur-sm text-white px-6 py-3 rounded-full border border-white/30;
+}
+
+/* Logout button */
+.logout-btn {
+  @apply fixed bottom-8 right-8 bg-blue-700 hover:bg-blue-800 text-white px-6 py-2 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 z-40 font-medium;
+}
+

@@ -6,7 +6,8 @@
 const variantStyles = {
   primary: 'bg-blue-500 hover:bg-blue-600 text-white',
   secondary: 'bg-gray-600 hover:bg-gray-700 text-white',
-  danger: 'text-red-500 hover:bg-red-50 hover:text-red-600',
+  danger: 'bg-red-600 hover:bg-red-700 text-white',
+  'danger-ghost': 'text-red-500 hover:bg-red-50 hover:text-red-600',
   ghost: 'bg-white hover:bg-gray-50 text-gray-900',
 };
 
@@ -28,7 +29,7 @@ export function Button({
   disabled = false,
   ...props
 }) {
-  const baseStyles = 'rounded-md font-medium border-none cursor-pointer transition-all duration-200 disabled:bg-gray-400 disabled:cursor-not-allowed';
+  const baseStyles = 'rounded-md font-medium border-none cursor-pointer transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed';
   
   const floatingStyles = floating
     ? 'fixed top-8 right-8 w-12 h-12 rounded-full flex items-center justify-center shadow-lg hover:scale-110 hover:shadow-xl z-40 bg-blue-700 hover:bg-blue-800 text-white'
@@ -38,11 +39,14 @@ export function Button({
     ? 'fixed top-8 left-8 w-12 h-12 rounded-full flex items-center justify-center shadow-lg hover:scale-110 hover:shadow-xl z-40 bg-blue-700 hover:bg-blue-800 text-white'
     : '';
   
+  // Icon buttons use danger-ghost for subtle danger styling
+  const effectiveVariant = icon && variant === 'danger' ? 'danger-ghost' : variant;
+  
   const iconStyles = icon && !floating && !back
     ? 'p-1 rounded hover:bg-gray-100'
     : '';
 
-  const variantClass = variantStyles[variant] || variantStyles.primary;
+  const variantClass = variantStyles[effectiveVariant] || variantStyles.primary;
   const sizeClass = floating || back || icon ? '' : sizeStyles[size];
 
   return (
@@ -55,4 +59,3 @@ export function Button({
     </button>
   );
 }
-

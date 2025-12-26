@@ -13,21 +13,12 @@ export function DeleteTankModal({ isOpen, onClose, onConfirm, tankName }) {
 
   return (
     <Modal isOpen={isOpen} onClose={onClose}>
-      <Modal.Header>
+      <Modal.Header onClose={onClose} disabled={isDeleting}>
         <Modal.Title>Delete Tank</Modal.Title>
-        <button
-          onClick={onClose}
-          className="text-gray-500 hover:text-gray-700 transition-colors"
-          disabled={isDeleting}
-        >
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        </button>
       </Modal.Header>
 
       <Modal.Body>
-        <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+        <div className="danger-box">
           <p className="text-gray-800 mb-2">
             Are you sure you want to delete <strong>"{tankName}"</strong>?
           </p>
@@ -46,16 +37,16 @@ export function DeleteTankModal({ isOpen, onClose, onConfirm, tankName }) {
         >
           Cancel
         </Button>
-        <button
+        <Button
           type="button"
+          variant="danger"
           onClick={handleConfirm}
-          className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors font-medium disabled:opacity-50"
           disabled={isDeleting}
+          className="bg-red-600 text-white hover:bg-red-700"
         >
           {isDeleting ? 'Deleting...' : 'Delete Tank'}
-        </button>
+        </Button>
       </Modal.Footer>
     </Modal>
   );
 }
-

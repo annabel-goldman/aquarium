@@ -1,0 +1,19 @@
+/* ============================================
+   STYLES INDEX
+   Main entry point that imports all style modules
+   ============================================ */
+
+/* Global styles and Tailwind directives */
+@import './globals.css';
+
+/* Page styles */
+@import './pages/login.css';
+@import './pages/aquarium.css';
+@import './pages/tank.css';
+
+/* Component styles */
+@import './components/controls-panel.css';
+@import './components/tank-view.css';
+@import './components/fish-list.css';
+@import './components/modals.css';
+

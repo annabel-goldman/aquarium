@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Modal, Button, Input, Label } from './ui';
+import { LIMITS } from '../config/constants';
 
 export function CreateTankModal({ isOpen, onClose, onSubmit, currentTankCount }) {
   const [name, setName] = useState('');
@@ -14,8 +15,8 @@ export function CreateTankModal({ isOpen, onClose, onSubmit, currentTankCount })
       return;
     }
 
-    if (name.length > 50) {
-      setError('Tank name must be 50 characters or less');
+    if (name.length > LIMITS.tankNameMaxLength) {
+      setError(`Tank name must be ${LIMITS.tankNameMaxLength} characters or less`);
       return;
     }
 
@@ -40,19 +41,12 @@ export function CreateTankModal({ isOpen, onClose, onSubmit, currentTankCount })
     onClose();
   };
 
+  const remainingTanks = LIMITS.maxTanks - currentTankCount;
+
   return (
     <Modal isOpen={isOpen} onClose={handleClose}>
-      <Modal.Header>
+      <Modal.Header onClose={handleClose} disabled={isSubmitting}>
         <Modal.Title>Create New Tank</Modal.Title>
-        <button
-          onClick={handleClose}
-          className="text-gray-500 hover:text-gray-700 transition-colors"
-          disabled={isSubmitting}
-        >
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        </button>
       </Modal.Header>
 
       <form onSubmit={handleSubmit}>
@@ -64,20 +58,20 @@ export function CreateTankModal({ isOpen, onClose, onSubmit, currentTankCount })
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="e.g., Tropical Paradise"
-              maxLength={50}
+              maxLength={LIMITS.tankNameMaxLength}
               disabled={isSubmitting}
               autoFocus
             />
           </div>
 
           {error && (
-            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+            <div className="error-box mb-4 border border-red-200">
               {error}
             </div>
           )}
 
           <div className="text-sm text-gray-500">
-            You have {currentTankCount} of 6 tanks. {6 - currentTankCount} remaining.
+            You have {currentTankCount} of {LIMITS.maxTanks} tanks. {remainingTanks} remaining.
           </div>
         </Modal.Body>
 
@@ -102,4 +96,3 @@ export function CreateTankModal({ isOpen, onClose, onSubmit, currentTankCount })
     </Modal>
   );
 }
-

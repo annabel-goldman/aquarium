@@ -1,6 +1,9 @@
 import { useState } from 'react';
 import { DeleteTankModal } from './DeleteTankModal';
 import { Card, Button } from './ui';
+import { TrashIcon } from './icons';
+import { LIMITS } from '../config/constants';
+import '../styles/components/modals.css';
 
 export function TankPreview({ tank, onEnter, onDelete }) {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -19,10 +22,10 @@ export function TankPreview({ tank, onEnter, onDelete }) {
       <Card onClick={() => onEnter(tank.id)} className="group">
         {/* Tank Preview - Static placeholder */}
         <Card.Image>
-          <div className="w-full h-full bg-gradient-to-b from-blue-300 to-blue-600 flex items-center justify-center">
+          <div className="tank-preview-image">
             <div className="text-center">
-              <div className="text-6xl mb-2">🐠</div>
-              <div className="text-white text-sm font-medium">
+              <div className="tank-preview-icon">🐠</div>
+              <div className="tank-preview-count">
                 {tank.fishCount} {tank.fishCount === 1 ? 'fish' : 'fish'}
               </div>
             </div>
@@ -34,7 +37,7 @@ export function TankPreview({ tank, onEnter, onDelete }) {
           <Card.Title>{tank.name}</Card.Title>
           <div className="flex justify-between items-center mt-2">
             <span className="text-sm text-gray-500">
-              {tank.fishCount} / 30 fish
+              {tank.fishCount} / {LIMITS.maxFishPerTank} fish
             </span>
             <Button
               onClick={handleDelete}
@@ -43,9 +46,7 @@ export function TankPreview({ tank, onEnter, onDelete }) {
               className="opacity-0 group-hover:opacity-100 transition-opacity"
               title="Delete tank"
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-              </svg>
+              <TrashIcon />
             </Button>
           </div>
         </Card.Body>
@@ -60,4 +61,3 @@ export function TankPreview({ tank, onEnter, onDelete }) {
     </>
   );
 }
-

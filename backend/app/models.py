@@ -68,6 +68,7 @@ class SessionCreate(BaseModel):
 
 class SessionResponse(BaseModel):
     username: str
+    is_new_user: bool = False  # True when account was just created
 
 
 class FishCreate(BaseModel):

@@ -27,14 +27,12 @@ async function fetchAPI(endpoint, options = {}) {
 
 export const api = {
   // Session endpoints
-  createSession: (username, password) =>
+  
+  /**
+   * Unified auth - logs in if account exists, creates account if it doesn't
+   */
+  authenticate: (username, password) =>
     fetchAPI('/sessions', {
-      method: 'POST',
-      body: JSON.stringify({ username, password }),
-    }),
-
-  registerSession: (username, password) =>
-    fetchAPI('/sessions/register', {
       method: 'POST',
       body: JSON.stringify({ username, password }),
     }),
@@ -93,6 +91,15 @@ export const api = {
   deleteFish: (tankId, fishId) =>
     fetchAPI(`/tanks/${tankId}/fish/${fishId}`, {
       method: 'DELETE',
+    }),
+
+  /**
+   * Bulk add fish to a tank - used for syncing guest fish on login
+   */
+  bulkAddFish: (tankId, fishList) =>
+    fetchAPI(`/tanks/${tankId}/fish/bulk`, {
+      method: 'POST',
+      body: JSON.stringify(fishList),
     }),
 };
 

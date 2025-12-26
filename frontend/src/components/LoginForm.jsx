@@ -2,41 +2,71 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { LIMITS } from '../config/constants';
 import { Button, Input, Label } from './ui';
+import { getStoredGuestFish } from '../hooks/useGuestTank';
+import '../styles/pages/login.css';
 
-export function LoginForm({ onLogin, onRegister }) {
+export function LoginForm({ onAuthenticate }) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [isRegistering, setIsRegistering] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [welcomeMessage, setWelcomeMessage] = useState('');
   const navigate = useNavigate();
+
+  // Check if there are guest fish to sync
+  const guestFish = getStoredGuestFish();
+  const hasGuestFish = guestFish.length > 0;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    setWelcomeMessage('');
     setLoading(true);
 
-    const result = isRegistering 
-      ? await onRegister(username, password)
-      : await onLogin(username, password);
+    const result = await onAuthenticate(username, password);
     
     if (result.success) {
-      navigate('/aquarium');
+      // Show appropriate welcome message
+      if (result.isNewUser) {
+        setWelcomeMessage(
+          hasGuestFish 
+            ? `Account created! Syncing ${guestFish.length} fish... 🐠`
+            : 'Account created! Welcome to Aquarium 🐠'
+        );
+      } else if (hasGuestFish) {
+        setWelcomeMessage(`Welcome back! Syncing ${guestFish.length} fish... 🐠`);
+      }
+      
+      // Navigate after a short delay to show the message
+      setTimeout(() => {
+        navigate('/aquarium');
+      }, hasGuestFish || result.isNewUser ? 800 : 0);
     } else {
-      setError(result.error || `Failed to ${isRegistering ? 'register' : 'login'}`);
+      setError(result.error || 'Authentication failed');
       setLoading(false);
     }
   };
 
+  const handleTryWithoutAccount = () => {
+    navigate('/guest');
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-600 via-purple-700 to-purple-800 flex items-center justify-center p-4">
-      <div className="bg-white rounded-lg shadow-xl p-8 w-full max-w-md">
-        <h1 className="text-3xl font-bold text-center mb-2 text-gray-800">
-          🐠 Aquarium V2
+    <div className="login-page">
+      <div className="login-card">
+        <h1 className="login-title">
+          🐠 Aquarium
         </h1>
-        <p className="text-center text-gray-600 mb-6">
-          {isRegistering ? 'Create your account' : 'Sign in to access your tanks'}
+        <p className="login-subtitle">
+          Enter your credentials to dive in
         </p>
+        
+        {/* Show guest fish badge if they have fish */}
+        {hasGuestFish && (
+          <div className="guest-fish-badge">
+            🐠 You have {guestFish.length} fish waiting to be saved!
+          </div>
+        )}
         
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
@@ -46,14 +76,14 @@ export function LoginForm({ onLogin, onRegister }) {
               type="text"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              placeholder="annabel"
+              placeholder="your_username"
               pattern="[a-z0-9_]{3,20}"
               title={`${LIMITS.usernameMinLength}-${LIMITS.usernameMaxLength} characters: lowercase letters, numbers, and underscores`}
               required
               disabled={loading}
             />
-            <p className="text-xs text-gray-500 mt-1">
-              {LIMITS.usernameMinLength}-{LIMITS.usernameMaxLength} characters: lowercase letters, numbers, and underscores only
+            <p className="login-hint">
+              {LIMITS.usernameMinLength}-{LIMITS.usernameMaxLength} characters: lowercase, numbers, underscores
             </p>
           </div>
 
@@ -65,19 +95,25 @@ export function LoginForm({ onLogin, onRegister }) {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••"
-              minLength="8"
-              maxLength="100"
+              minLength={LIMITS.passwordMinLength}
+              maxLength={LIMITS.passwordMaxLength}
               required
               disabled={loading}
             />
-            <p className="text-xs text-gray-500 mt-1">
-              At least 8 characters
+            <p className="login-hint">
+              At least {LIMITS.passwordMinLength} characters
             </p>
           </div>
 
           {error && (
-            <div className="bg-red-50 text-red-700 p-3 rounded text-sm">
+            <div className="error-box">
               {error}
+            </div>
+          )}
+
+          {welcomeMessage && (
+            <div className="success-box">
+              {welcomeMessage}
             </div>
           )}
 
@@ -87,25 +123,28 @@ export function LoginForm({ onLogin, onRegister }) {
             className="w-full"
             disabled={loading}
           >
-            {loading ? 'Loading...' : (isRegistering ? 'Create Account' : 'Sign In')}
+            {loading ? 'Loading...' : (hasGuestFish ? 'Save Fish & Continue' : 'Continue')}
           </Button>
 
-          <div className="text-center">
-            <button
-              type="button"
-              onClick={() => {
-                setIsRegistering(!isRegistering);
-                setError('');
-              }}
-              className="text-sm text-blue-600 hover:text-blue-800"
-              disabled={loading}
-            >
-              {isRegistering ? 'Already have an account? Sign in' : "Don't have an account? Register"}
-            </button>
+          <div className="divider">
+            <span>or</span>
           </div>
+
+          <Button
+            type="button"
+            variant="secondary"
+            className="w-full"
+            onClick={handleTryWithoutAccount}
+            disabled={loading}
+          >
+            Try without an account
+          </Button>
+
+          <p className="text-center text-sm text-gray-500">
+            New here? Just enter a username and password to create your account.
+          </p>
         </form>
       </div>
     </div>
   );
 }
-

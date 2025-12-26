@@ -1,32 +1,24 @@
 /**
- * Input component with Tailwind styling
- * Replaces: .input-field
+ * Input components with Tailwind styling
+ * Shared base styles to avoid duplication
  */
 
-export function Input({
-  className = '',
-  ...props
-}) {
-  const baseStyles = 'w-full px-3 py-2 border border-gray-300 rounded-md text-base transition-all duration-200 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10';
+// Shared base styles for form inputs
+const inputBaseStyles = 'w-full px-3 py-2 border border-gray-300 rounded-md text-base transition-all duration-200 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10';
 
+export function Input({ className = '', ...props }) {
   return (
     <input
-      className={`${baseStyles} ${className}`.trim()}
+      className={`${inputBaseStyles} ${className}`.trim()}
       {...props}
     />
   );
 }
 
-export function Select({
-  className = '',
-  children,
-  ...props
-}) {
-  const baseStyles = 'w-full px-3 py-2 border border-gray-300 rounded-md text-base transition-all duration-200 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10';
-
+export function Select({ className = '', children, ...props }) {
   return (
     <select
-      className={`${baseStyles} ${className}`.trim()}
+      className={`${inputBaseStyles} ${className}`.trim()}
       {...props}
     >
       {children}
@@ -34,20 +26,15 @@ export function Select({
   );
 }
 
-export function Label({
-  className = '',
-  children,
-  ...props
-}) {
-  const baseStyles = 'block text-sm font-medium text-gray-700 mb-2';
+export function Label({ className = '', children, ...props }) {
+  const labelStyles = 'block text-sm font-medium text-gray-700 mb-2';
 
   return (
     <label
-      className={`${baseStyles} ${className}`.trim()}
+      className={`${labelStyles} ${className}`.trim()}
       {...props}
     >
       {children}
     </label>
   );
 }
-

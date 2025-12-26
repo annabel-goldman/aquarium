@@ -1,3 +1,6 @@
+import { CloseIcon } from '../icons';
+import '../../styles/components/modals.css';
+
 /**
  * Modal component with compound pattern
  * Replaces: .modal-overlay, .modal-content, .modal-header, .modal-body, .modal-footer
@@ -7,12 +10,9 @@ export function Modal({ isOpen, onClose, children, className = '' }) {
   if (!isOpen) return null;
 
   return (
-    <div
-      className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
-      onClick={onClose}
-    >
+    <div className="modal-overlay" onClick={onClose}>
       <div
-        className={`bg-white rounded-lg shadow-2xl max-w-md w-[90%] max-h-[90vh] overflow-y-auto ${className}`.trim()}
+        className={`modal-content ${className}`.trim()}
         onClick={(e) => e.stopPropagation()}
       >
         {children}
@@ -21,17 +21,27 @@ export function Modal({ isOpen, onClose, children, className = '' }) {
   );
 }
 
-Modal.Header = function ModalHeader({ children, className = '' }) {
+Modal.Header = function ModalHeader({ children, onClose, disabled = false, className = '' }) {
   return (
-    <div className={`flex justify-between items-center px-6 py-4 border-b border-gray-200 ${className}`.trim()}>
+    <div className={`modal-header ${className}`.trim()}>
       {children}
+      {onClose && (
+        <button
+          onClick={onClose}
+          className="modal-close-btn"
+          disabled={disabled}
+          type="button"
+        >
+          <CloseIcon />
+        </button>
+      )}
     </div>
   );
 };
 
 Modal.Body = function ModalBody({ children, className = '' }) {
   return (
-    <div className={`px-6 py-4 ${className}`.trim()}>
+    <div className={`modal-body ${className}`.trim()}>
       {children}
     </div>
   );
@@ -39,7 +49,7 @@ Modal.Body = function ModalBody({ children, className = '' }) {
 
 Modal.Footer = function ModalFooter({ children, className = '' }) {
   return (
-    <div className={`flex justify-end gap-3 px-6 py-4 border-t border-gray-200 ${className}`.trim()}>
+    <div className={`modal-footer ${className}`.trim()}>
       {children}
     </div>
   );
@@ -47,9 +57,8 @@ Modal.Footer = function ModalFooter({ children, className = '' }) {
 
 Modal.Title = function ModalTitle({ children, className = '' }) {
   return (
-    <h2 className={`text-2xl font-bold text-gray-800 ${className}`.trim()}>
+    <h2 className={`modal-title ${className}`.trim()}>
       {children}
     </h2>
   );
 };
-

@@ -1,0 +1,79 @@
+/* ============================================
+   MODAL STYLES
+   Shared styles for all modals
+   ============================================ */
+
+.modal-overlay {
+  @apply fixed inset-0 bg-black/50 flex items-center justify-center z-50;
+}
+
+.modal-content {
+  @apply bg-white rounded-lg shadow-2xl max-w-md w-[90%] max-h-[90vh] overflow-y-auto;
+}
+
+.modal-header {
+  @apply flex justify-between items-center px-6 py-4 border-b border-gray-200;
+}
+
+.modal-title {
+  @apply text-2xl font-bold text-gray-800;
+}
+
+.modal-close-btn {
+  @apply text-gray-500 hover:text-gray-700 transition-colors;
+}
+
+.modal-body {
+  @apply px-6 py-4;
+}
+
+.modal-footer {
+  @apply flex justify-end gap-3 px-6 py-4 border-t border-gray-200;
+}
+
+/* Add Fish Modal specifics */
+.color-picker-wrapper {
+  @apply flex items-center gap-3 mb-2;
+}
+
+.color-picker-input {
+  @apply h-10 w-20 border border-gray-300 rounded cursor-pointer;
+}
+
+.color-swatches {
+  @apply flex gap-2;
+}
+
+.color-swatch {
+  @apply w-8 h-8 rounded border-2 border-gray-300 hover:border-blue-500 transition-colors;
+}
+
+.size-options {
+  @apply flex gap-4;
+}
+
+.size-option {
+  @apply flex items-center cursor-pointer;
+}
+
+.size-option-radio {
+  @apply mr-2;
+}
+
+.size-option-label {
+  @apply text-gray-700 capitalize;
+}
+
+/* Tank Preview Card */
+.tank-preview-image {
+  @apply w-full h-full bg-gradient-to-b from-blue-300 to-blue-600 flex items-center justify-center;
+}
+
+.tank-preview-icon {
+  @apply text-6xl mb-2;
+}
+
+.tank-preview-count {
+  @apply text-white text-sm font-medium;
+}
+

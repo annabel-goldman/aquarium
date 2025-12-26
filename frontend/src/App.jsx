@@ -3,9 +3,10 @@ import { useSession } from './hooks/useSession';
 import { LoginForm } from './components/LoginForm';
 import { AquariumPage } from './pages/AquariumPage';
 import { TankPage } from './pages/TankPage';
+import { GuestTankPage } from './pages/GuestTankPage';
 
 function App() {
-  const { username, loading, login, register, logout, isAuthenticated } = useSession();
+  const { username, loading, authenticate, logout, isAuthenticated } = useSession();
 
   if (loading) {
     return (
@@ -24,7 +25,7 @@ function App() {
             isAuthenticated ? (
               <Navigate to="/aquarium" replace />
             ) : (
-              <LoginForm onLogin={login} onRegister={register} />
+              <LoginForm onAuthenticate={authenticate} />
             )
           }
         />
@@ -48,13 +49,23 @@ function App() {
             )
           }
         />
-        {/* Redirect old /tank route to new /aquarium route */}
+        {/* Default route - guest mode for unauthenticated, aquarium for authenticated */}
+        <Route
+          path="/"
+          element={
+            isAuthenticated ? (
+              <Navigate to="/aquarium" replace />
+            ) : (
+              <GuestTankPage />
+            )
+          }
+        />
+        {/* Legacy redirects */}
+        <Route path="/guest" element={<Navigate to="/" replace />} />
         <Route path="/tank" element={<Navigate to="/aquarium" replace />} />
-        <Route path="/" element={<Navigate to="/aquarium" replace />} />
       </Routes>
     </Router>
   );
 }
 
 export default App;
-

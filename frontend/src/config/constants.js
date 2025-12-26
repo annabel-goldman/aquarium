@@ -24,14 +24,14 @@ export const FISH_SIZE_CONFIG = {
   md: {
     scale: 0.16,
     radius: 1.6,
-    nametagOffset: 2,  // Consistent base offset
+    nametagOffset: 2,
     speed: 0.003,
     tailSpeed: 6,
   },
   lg: {
     scale: 0.24,
     radius: 2.4,
-    nametagOffset: 2,  // Consistent base offset
+    nametagOffset: 2,
     speed: 0.002,
     tailSpeed: 5,
   },
@@ -61,11 +61,23 @@ export const TANK_BOUNDS = {
   targetPaddingY: 0.12,
 };
 
-// App limits
+// App limits - centralized to avoid magic numbers
 export const LIMITS = {
-  maxFish: 100,
+  // Fish limits
+  maxFishPerTank: 30,
+  
+  // Tank limits
+  maxTanks: 6,
+  tankNameMaxLength: 50,
+  
+  // User limits
   usernameMinLength: 3,
   usernameMaxLength: 20,
+  passwordMinLength: 8,
+  passwordMaxLength: 100,
+  
+  // Fish name limits
+  fishNameMaxLength: 50,
 };
 
 // Default colors for fish customization
@@ -78,3 +90,9 @@ export const DEFAULT_COLORS = [
   '#8844ff', // Purple
 ];
 
+// Size display names
+export const SIZE_LABELS = {
+  sm: 'Small',
+  md: 'Medium',
+  lg: 'Large',
+};

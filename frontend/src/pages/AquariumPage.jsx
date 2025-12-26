@@ -1,14 +1,19 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTanks } from '../hooks/useTanks';
+import { useLogout } from '../hooks/useLogout';
 import { TankPreview } from '../components/TankPreview';
 import { CreateTankModal } from '../components/CreateTankModal';
 import { Button } from '../components/ui';
+import { PlusIcon } from '../components/icons';
+import { LIMITS } from '../config/constants';
+import '../styles/pages/aquarium.css';
 
 export function AquariumPage({ username, onLogout }) {
   const navigate = useNavigate();
   const { tanks, loading, error, createTank, deleteTank } = useTanks();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const handleLogout = useLogout(onLogout);
 
   const handleEnterTank = (tankId) => {
     navigate(`/tanks/${tankId}`);
@@ -25,7 +30,7 @@ export function AquariumPage({ username, onLogout }) {
 
   if (loading) {
     return (
-      <div className="fixed inset-0 bg-gradient-to-b from-blue-400 via-blue-500 to-blue-700 flex items-center justify-center">
+      <div className="fullscreen-center bg-ocean">
         <div className="text-xl text-white font-medium">Loading your aquariums...</div>
       </div>
     );
@@ -33,24 +38,24 @@ export function AquariumPage({ username, onLogout }) {
 
   if (error) {
     return (
-      <div className="fixed inset-0 bg-gradient-to-b from-blue-400 via-blue-500 to-blue-700 flex items-center justify-center">
+      <div className="fullscreen-center bg-ocean">
         <div className="text-xl text-red-100 font-medium">Error: {error}</div>
       </div>
     );
   }
 
-  const canCreateTank = tanks.length < 6;
+  const canCreateTank = tanks.length < LIMITS.maxTanks;
 
   return (
-    <div className="fixed inset-0 bg-gradient-to-b from-blue-400 via-blue-500 to-blue-700 overflow-y-auto">
+    <div className="aquarium-page">
       {/* Header with user info - centered, avoiding buttons */}
-      <div className="fixed top-0 left-0 right-0 z-30 pointer-events-none">
-        <div className="max-w-7xl mx-auto px-6 py-6">
-          <div className="flex justify-center items-center">
-            <div className="flex items-center gap-4">
-              <h1 className="text-3xl font-bold text-white drop-shadow-lg">🐠 My Aquariums</h1>
-              <span className="text-base font-semibold text-white/90 bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full border border-white/30">
-                {tanks.length} / 6 tanks
+      <div className="aquarium-header">
+        <div className="aquarium-header-content">
+          <div className="aquarium-title-wrapper">
+            <div className="aquarium-title-group">
+              <h1 className="aquarium-title">🐠 My Aquariums</h1>
+              <span className="status-badge">
+                {tanks.length} / {LIMITS.maxTanks} tanks
               </span>
             </div>
           </div>
@@ -59,42 +64,32 @@ export function AquariumPage({ username, onLogout }) {
 
       {/* Logout button - bottom right corner */}
       {onLogout && (
-        <button
-          onClick={async () => {
-            const result = await onLogout();
-            if (result.success) {
-              navigate('/login');
-            }
-          }}
-          className="fixed bottom-8 right-8 bg-blue-700 hover:bg-blue-800 text-white px-6 py-2 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 z-40 font-medium"
-        >
+        <button onClick={handleLogout} className="logout-btn">
           Logout
         </button>
       )}
 
       {/* Main Content */}
-      <div className="pt-32 pb-12 px-6">
-        <div className="max-w-7xl mx-auto">
+      <div className="aquarium-content">
+        <div className="aquarium-content-inner">
           {/* Tanks Grid */}
           {tanks.length === 0 ? (
-            <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-2xl p-16 text-center max-w-2xl mx-auto">
-              <div className="text-8xl mb-6">🐠</div>
-              <h2 className="text-3xl font-bold text-gray-800 mb-4">No tanks yet</h2>
-              <p className="text-gray-600 mb-8 text-lg">Create your first aquarium and start adding fish!</p>
+            <div className="empty-state">
+              <div className="empty-state-icon">🐠</div>
+              <h2 className="empty-state-title">No tanks yet</h2>
+              <p className="empty-state-text">Create your first aquarium and start adding fish!</p>
               <Button 
                 onClick={() => setIsCreateModalOpen(true)} 
                 variant="primary"
                 size="lg"
               >
-                <svg className="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                </svg>
+                <PlusIcon className="w-5 h-5 inline mr-2" />
                 Create Your First Tank
               </Button>
             </div>
           ) : (
             <>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+              <div className="tanks-grid">
                 {tanks.map((tank) => (
                   <TankPreview
                     key={tank.id}
@@ -105,23 +100,21 @@ export function AquariumPage({ username, onLogout }) {
                 ))}
               </div>
 
-              {/* Floating Add Button - matching tank page style */}
+              {/* Floating Add Button */}
               {canCreateTank && (
                 <Button
                   onClick={() => setIsCreateModalOpen(true)}
                   floating={true}
                   title="Add New Tank"
                 >
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                  </svg>
+                  <PlusIcon />
                 </Button>
               )}
 
               {!canCreateTank && (
-                <div className="mt-8 text-center">
-                  <div className="inline-block bg-white/20 backdrop-blur-sm text-white px-6 py-3 rounded-full border border-white/30">
-                    Maximum of 6 tanks reached. Delete a tank to create a new one.
+                <div className="max-tanks-message">
+                  <div className="max-tanks-badge">
+                    Maximum of {LIMITS.maxTanks} tanks reached. Delete a tank to create a new one.
                   </div>
                 </div>
               )}
@@ -140,4 +133,3 @@ export function AquariumPage({ username, onLogout }) {
     </div>
   );
 }
-

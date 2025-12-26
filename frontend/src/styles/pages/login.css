@@ -1,0 +1,49 @@
+/* ============================================
+   LOGIN PAGE STYLES
+   Styles for LoginForm component
+   ============================================ */
+
+.login-page {
+  @apply min-h-screen bg-gradient-to-br from-purple-600 via-purple-700 to-purple-800 flex items-center justify-center p-4;
+}
+
+.login-card {
+  @apply bg-white rounded-lg shadow-xl p-8 w-full max-w-md;
+}
+
+.login-title {
+  @apply text-3xl font-bold text-center mb-2 text-gray-800;
+}
+
+.login-subtitle {
+  @apply text-center text-gray-600 mb-6;
+}
+
+.login-hint {
+  @apply text-xs text-gray-500 mt-1;
+}
+
+.login-toggle {
+  @apply text-sm text-blue-600 hover:text-blue-800;
+}
+
+/* Guest fish notification badge */
+.guest-fish-badge {
+  @apply bg-blue-50 text-blue-700 px-4 py-2 rounded-lg text-sm font-medium mb-4 text-center border border-blue-200;
+}
+
+/* Divider with text */
+.divider {
+  @apply flex items-center gap-4 my-2;
+}
+
+.divider::before,
+.divider::after {
+  content: '';
+  @apply flex-1 h-px bg-gray-300;
+}
+
+.divider span {
+  @apply text-sm text-gray-500;
+}
+

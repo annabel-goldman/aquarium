@@ -1,5 +1,6 @@
 import { FishSprite } from './FishSprite';
 import { FISH_SIZE_CONFIG } from '../config/constants';
+import '../styles/components/tank-view.css';
 
 /**
  * TankView - Renders the aquarium with fish
@@ -10,11 +11,6 @@ export function TankView({ fish = [], showNametags = false }) {
       className="tank-svg"
       viewBox="0 0 100 100"
       preserveAspectRatio="xMidYMid slice"
-      style={{
-        width: '100vw',
-        height: '100vh',
-        background: 'linear-gradient(to bottom, #3b82f6 0%, #2563eb 50%, #1e40af 100%)',
-      }}
     >
       {fish.map((f) => {
         const sizeConfig = FISH_SIZE_CONFIG[f.size] || FISH_SIZE_CONFIG.md;
@@ -49,4 +45,3 @@ export function TankView({ fish = [], showNametags = false }) {
     </svg>
   );
 }
-
