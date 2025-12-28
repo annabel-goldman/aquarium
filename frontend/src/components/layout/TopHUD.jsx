@@ -3,10 +3,10 @@ import { api } from '../../api/client';
 import '../../styles/components/top-hud.css';
 
 /**
- * TopHUD - Top of screen HUD with logout and coins
- * Reused across all authenticated pages
+ * TopHUD - Top of screen HUD with login/logout and coins
+ * Reused across all pages (works for both auth and unauth)
  */
-export function TopHUD({ coins = 0 }) {
+export function TopHUD({ coins = 0, isAuthenticated = false }) {
   const navigate = useNavigate();
   
   const handleLogout = async () => {
@@ -19,6 +19,10 @@ export function TopHUD({ coins = 0 }) {
     window.location.reload();
   };
 
+  const handleLogin = () => {
+    navigate('/login');
+  };
+
   return (
     <div className="top-hud">
       {/* Coin Display - Center */}
@@ -27,14 +31,24 @@ export function TopHUD({ coins = 0 }) {
         <span className="coin-amount">{coins}</span>
       </div>
       
-      {/* Logout Button - Right */}
-      <button 
-        className="logout-btn"
-        onClick={handleLogout}
-        title="Log out"
-      >
-        Log out
-      </button>
+      {/* Login/Logout Button - Right */}
+      {isAuthenticated ? (
+        <button 
+          className="logout-btn"
+          onClick={handleLogout}
+          title="Log out"
+        >
+          Log out
+        </button>
+      ) : (
+        <button 
+          className="logout-btn login-btn"
+          onClick={handleLogin}
+          title="Log in to save your progress"
+        >
+          🔒 Log in
+        </button>
+      )}
     </div>
   );
 }

@@ -128,15 +128,21 @@ export function FishInTank({ fish, currentFrame = 'tail-1' }) {
       {/* Render all accessories */}
       {accessories.map((acc) => {
         const accessorySize = displaySize * acc.size;
+        // Position accessory center at acc.x, acc.y (scaled by fish size)
+        const accessoryX = (acc.x * sizeConfig.scale);
+        const accessoryY = (acc.y * sizeConfig.scale);
+        
         return (
           <image
             key={acc.slot}
             href={acc.sprite}
-            x={(acc.x - accessorySize / 2) * sizeConfig.scale}
-            y={(acc.y - accessorySize / 2) * sizeConfig.scale}
+            // Position so accessory center is at (accessoryX, accessoryY)
+            x={-accessorySize * sizeConfig.scale / 2}
+            y={-accessorySize * sizeConfig.scale / 2}
             width={accessorySize * sizeConfig.scale}
             height={accessorySize * sizeConfig.scale}
-            transform={`rotate(${acc.rotation})`}
+            // Translate to position, then rotate around that point
+            transform={`translate(${accessoryX}, ${accessoryY}) rotate(${acc.rotation})`}
             style={{ filter: 'drop-shadow(0 0.5px 1px rgba(0,0,0,0.3))' }}
           />
         );
@@ -183,7 +189,12 @@ export function FishInPreview({ fish, size = 160 }) {
       
       {/* Render all accessories */}
       {accessories.map((acc) => {
+        // Match SVG coordinate system exactly
+        // SVG: center-based coordinates at (0,0)
+        // HTML: need to convert to top-left coordinates starting at (32,32) center
         const accessorySize = 64 * acc.size * scaleFactor;
+        
+        // Convert from SVG center-based (0,0) to HTML top-left based with (32,32) as center
         const accessoryX = (32 + acc.x) * scaleFactor - accessorySize / 2;
         const accessoryY = (32 + acc.y) * scaleFactor - accessorySize / 2;
         
@@ -199,6 +210,7 @@ export function FishInPreview({ fish, size = 160 }) {
               width: accessorySize,
               height: accessorySize,
               transform: `rotate(${acc.rotation}deg)`,
+              transformOrigin: 'center',  // Rotate around accessory center
               filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))',
               pointerEvents: 'none',
             }}

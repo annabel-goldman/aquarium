@@ -1,5 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { api } from '../api/client';
+import { useUnifiedGame } from '../hooks/useUnifiedGame';
+import { useLocalFishing } from '../hooks/useLocalFishing';
 import { TopHUD, FishCounter } from '../components/layout';
 import { BottomNav } from '../components/BottomNav';
 import { WaterBackground } from '../components/WaterBackground';
@@ -220,10 +222,19 @@ function CatchModal({ result, tankFish, tankFull, onKeep, onRelease, onSwap, onD
   return null;
 }
 
-export function LakePage({ username }) {
-  const [coins, setCoins] = useState(0);
-  const [tankFish, setTankFish] = useState([]);
-  const [maxFish, setMaxFish] = useState(10);
+export function LakePage({ username, isAuthenticated }) {
+  const game = useUnifiedGame(isAuthenticated);
+  
+  // Only use local fishing when not authenticated
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  const localFishing = !isAuthenticated ? useLocalFishing() : null;
+  
+  // Store localFishing in a ref to avoid dependency issues
+  const localFishingRef = useRef(localFishing);
+  useEffect(() => {
+    localFishingRef.current = localFishing;
+  }, [localFishing]);
+  
   const [spawns, setSpawns] = useState([]);
   const [floatingCoins, setFloatingCoins] = useState([]);
   const [catching, setCatching] = useState(false);
@@ -234,31 +245,32 @@ export function LakePage({ username }) {
   const coinTimerRef = useRef(null);
   const coinIdRef = useRef(0);
   
-  // Load game state
-  useEffect(() => {
-    const load = async () => {
-      try {
-        const data = await api.getGameState();
-        setCoins(data.gameState?.coins || 0);
-        setTankFish(data.fish || []);
-        setMaxFish(data.gameState?.maxFish || 10);
-      } catch (err) {
-        console.error('Failed to load game:', err);
-      }
-    };
-    load();
-  }, []);
+  const coins = game.gameState?.coins || 0;
+  const tankFish = game.fish || [];
+  const maxFish = game.gameState?.maxFish || 10;
   
   // Spawn fish
   const refreshSpawns = useCallback(async () => {
     if (catching) return;
-    try {
-      const data = await api.getFishingSpawns();
-      setSpawns(data.spawns || []);
-    } catch (err) {
-      console.error('Spawn error:', err);
+    
+    if (isAuthenticated) {
+      // Use backend API
+      try {
+        const data = await api.getFishingSpawns();
+        console.log('[AUTH] Spawns from backend:', data.spawns);
+        setSpawns(data.spawns || []);
+      } catch (err) {
+        console.error('Spawn error:', err);
+      }
+    } else if (localFishingRef.current) {
+      // Use local fishing
+      const newSpawns = localFishingRef.current.generateSpawns();
+      console.log('[UNAUTH] Generated spawns:', newSpawns);
+      setSpawns(newSpawns);
+    } else {
+      console.warn('[UNAUTH] localFishing is null!');
     }
-  }, [catching]);
+  }, [catching, isAuthenticated]); // Removed localFishing from deps
   
   useEffect(() => {
     refreshSpawns();
@@ -305,13 +317,7 @@ export function LakePage({ username }) {
   // Collect a coin
   const handleCollectCoin = async (coin) => {
     setFloatingCoins(prev => prev.filter(c => c.id !== coin.id));
-    setCoins(prev => prev + coin.value);
-    
-    try {
-      await api.addCoins(coin.value);
-    } catch (err) {
-      console.error('Failed to save coins:', err);
-    }
+    game.addCoins(coin.value);
   };
   
   // Catch a fish
@@ -323,11 +329,43 @@ export function LakePage({ username }) {
     setRipple({ x: clickPos.x, y: clickPos.y, id: Date.now() });
     
     try {
-      const result = await api.attemptCatch(spawn.id, {
-        species: spawn.species,
-        size: spawn.size,
-        rarity: spawn.rarity,
-      });
+      let result;
+      
+      if (isAuthenticated) {
+        // Use backend API
+        result = await api.attemptCatch(spawn.id, {
+          species: spawn.species,
+          size: spawn.size,
+          rarity: spawn.rarity,
+        });
+      } else if (localFishing) {
+        // Use local fishing
+        result = localFishing.attemptCatch(spawn.id, spawn);
+        
+        // Handle cosmetic catches locally
+        if (result.resultType === 'cosmetic') {
+          const alreadyOwned = game.ownedAccessories?.includes(result.itemId);
+          
+          if (alreadyOwned) {
+            // Give bonus coins
+            game.addCoins(50);
+            result = {
+              resultType: 'bonus_coins',
+              message: `You already have this accessory! Here's 50 coins instead.`,
+            };
+          } else {
+            // Add to owned accessories
+            game.addOwnedAccessory(result.itemId);
+          }
+        }
+      } else {
+        // Fallback if something went wrong
+        result = {
+          resultType: 'junk',
+          junkItem: 'Nothing here...'
+        };
+      }
+      
       setCatchResult(result);
     } catch (err) {
       console.error('Catch error:', err);
@@ -344,43 +382,61 @@ export function LakePage({ username }) {
   // Keep fish
   const handleKeep = async () => {
     if (!catchResult?.fish) return;
-    try {
-      const result = await api.keepFish(catchResult.fish);
-      if (result.success && result.fish) {
-        setTankFish(prev => [...prev, result.fish]);
+    
+    if (isAuthenticated) {
+      try {
+        await api.keepFish(catchResult.fish);
+        game.refresh();
+      } catch (err) {
+        console.error('Keep error:', err);
       }
-    } catch (err) {
-      console.error('Keep error:', err);
+    } else {
+      // Add fish locally
+      game.addFish(catchResult.fish);
     }
+    
     setCatchResult(null);
   };
   
   // Release for coins
   const handleRelease = async () => {
     if (!catchResult?.fish) return;
-    try {
-      const result = await api.releaseForCoins(catchResult.fish);
-      if (result.success) {
-        setCoins(result.newCoins);
+    
+    if (isAuthenticated) {
+      try {
+        const result = await api.releaseForCoins(catchResult.fish);
+        game.updateCoins(result.newCoins);
+      } catch (err) {
+        console.error('Release error:', err);
       }
-    } catch (err) {
-      console.error('Release error:', err);
+    } else {
+      // Add coins locally
+      game.addCoins(catchResult.coinValue);
     }
+    
     setCatchResult(null);
   };
   
   // Swap fish
   const handleSwap = async (releaseFishId) => {
     if (!catchResult?.fish) return;
-    try {
-      const result = await api.swapFish(catchResult.fish, releaseFishId);
-      if (result.success) {
-        setTankFish(prev => [...prev.filter(f => f.id !== releaseFishId), result.addedFish]);
-        setCoins(result.newCoins);
+    
+    if (isAuthenticated) {
+      try {
+        await api.swapFish(catchResult.fish, releaseFishId);
+        game.refresh();
+      } catch (err) {
+        console.error('Swap error:', err);
       }
-    } catch (err) {
-      console.error('Swap error:', err);
+    } else {
+      // Release old fish, add new fish
+      const fishToRelease = tankFish.find(f => f.id === releaseFishId);
+      if (fishToRelease) {
+        await game.releaseFish(releaseFishId);
+        game.addFish(catchResult.fish);
+      }
     }
+    
     setCatchResult(null);
   };
   
@@ -391,6 +447,7 @@ export function LakePage({ username }) {
       <WaterBackground>
         {/* Fish swimming area - paused when modal is shown */}
         <div className={`lake-fish-area ${catchResult ? 'paused' : ''}`}>
+          {console.log('[RENDER] Spawns to render:', spawns.length, spawns)}
           {spawns.map(spawn => (
             <FishSilhouette
               key={spawn.id}
@@ -421,8 +478,8 @@ export function LakePage({ username }) {
         )}
       </WaterBackground>
       
-      {/* Top HUD - Coins and Logout */}
-      <TopHUD coins={coins} />
+      {/* Top HUD - Coins and Login/Logout */}
+      <TopHUD coins={coins} isAuthenticated={isAuthenticated} />
       
       {/* Fish Counter */}
       <FishCounter current={tankFish.length} max={maxFish} />

@@ -82,3 +82,84 @@ async def delete_session(response: Response):
     clear_session_cookie(response)
     return {"status": "logged out"}
 
+
+@router.post("/sessions/migrate")
+async def migrate_local_game_state(
+    request: Request,
+    local_state: dict,
+    username: str = Depends(get_current_username)
+):
+    """
+    Migrate local game state from localStorage to authenticated account.
+    Merges fish, coins, owned accessories from local storage into user's account.
+    """
+    db = get_database()
+    users_collection = db.users
+    
+    user = await users_collection.find_one({"username": username})
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Extract local state components
+    local_fish = local_state.get("fish", [])
+    local_game_state = local_state.get("gameState", {})
+    local_coins = local_game_state.get("coins", 0)
+    local_accessories = local_game_state.get("ownedAccessories", [])
+    
+    # Get current user state
+    current_fish = user.get("fish", [])
+    current_game_state = user.get("gameState", {})
+    current_coins = current_game_state.get("coins", 0)
+    current_accessories = current_game_state.get("ownedAccessories", [])
+    
+    # Merge fish (add local fish to user's tank if space available)
+    max_fish = current_game_state.get("maxFish", 10)
+    fish_to_add = []
+    coins_from_releases = 0
+    
+    for fish in local_fish:
+        if len(current_fish) + len(fish_to_add) < max_fish:
+            # Add fish to tank
+            fish_copy = fish.copy()
+            # Ensure it has required fields
+            if "id" not in fish_copy:
+                fish_copy["id"] = str(uuid.uuid4())
+            if "createdAt" not in fish_copy:
+                fish_copy["createdAt"] = now_utc()
+            fish_to_add.append(fish_copy)
+        else:
+            # Tank full - convert to coins
+            rarity = fish.get("rarity", "common")
+            from app.game_config import RARITY_COIN_VALUES
+            coin_value = RARITY_COIN_VALUES.get(rarity, 5)
+            coins_from_releases += coin_value
+    
+    # Merge coins
+    new_coins = current_coins + local_coins + coins_from_releases
+    
+    # Merge accessories (union of both sets)
+    merged_accessories = list(set(current_accessories + local_accessories))
+    
+    # Update database
+    await users_collection.update_one(
+        {"username": username},
+        {
+            "$push": {"fish": {"$each": fish_to_add}},
+            "$set": {
+                "gameState.coins": new_coins,
+                "gameState.ownedAccessories": merged_accessories,
+                "updatedAt": now_utc()
+            }
+        }
+    )
+    
+    return {
+        "success": True,
+        "fishAdded": len(fish_to_add),
+        "fishReleased": len(local_fish) - len(fish_to_add),
+        "coinsFromReleases": coins_from_releases,
+        "coinsAdded": local_coins,
+        "totalCoins": new_coins,
+        "accessoriesAdded": len(merged_accessories) - len(current_accessories),
+    }
+

@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { api } from '../api/client';
-import { useGame } from '../hooks/useGame';
+import { useUnifiedGame } from '../hooks/useUnifiedGame';
 import { GameLayout } from '../components/layout';
 import { getAccessoryConfig } from '../config/constants';
+import { SHOP_ITEMS } from '../config/gameBalance';
 import '../styles/pages/shop.css';
 
 /**
@@ -56,23 +57,41 @@ function ShopItem({ item, canAfford, onBuy, purchasing }) {
   );
 }
 
-export function ShopPage({ username }) {
-  const { gameState, refresh } = useGame();
+export function ShopPage({ username, isAuthenticated }) {
+  const game = useUnifiedGame(isAuthenticated);
   const [shopItems, setShopItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState(null);
   const [purchasing, setPurchasing] = useState(false);
   
-  // Load shop items from backend
+  // Load shop items
   useEffect(() => {
     const loadShop = async () => {
       try {
-        const data = await api.getShopItems();
+        let items;
+        
+        if (isAuthenticated) {
+          // Load from backend
+          const data = await api.getShopItems();
+          items = data.items;
+        } else {
+          // Use local shop config
+          items = Object.entries(SHOP_ITEMS).map(([id, item]) => ({
+            id,
+            name: item.name,
+            category: item.category,
+            price: item.price,
+            catchOnly: item.catchOnly || false,
+            owned: game.ownedAccessories?.includes(id) || false,
+          }));
+        }
+        
         // Filter to only show items with sprites configured
-        const itemsWithSprites = data.items.filter(item => {
+        const itemsWithSprites = items.filter(item => {
           const config = getAccessoryConfig(item.id);
           return config?.sprite;
         });
+        
         setShopItems(itemsWithSprites);
       } catch (err) {
         console.error('Failed to load shop:', err);
@@ -81,7 +100,7 @@ export function ShopPage({ username }) {
       }
     };
     loadShop();
-  }, []);
+  }, [isAuthenticated, game.ownedAccessories]);
   
   const handleBuy = async (item) => {
     if (purchasing) return;
@@ -90,7 +109,13 @@ export function ShopPage({ username }) {
     setMessage(null);
     
     try {
-      const result = await api.buyItem(item.id);
+      let result;
+      
+      if (isAuthenticated) {
+        result = await api.buyItem(item.id);
+      } else {
+        result = game.buyItem(item.id);
+      }
       
       if (result.success) {
         setMessage({ type: 'success', text: `Bought ${item.name}!` });
@@ -98,15 +123,22 @@ export function ShopPage({ username }) {
         setShopItems(prev => prev.map(i => 
           i.id === item.id ? { ...i, owned: true } : i
         ));
-        refresh();
-        setTimeout(() => setMessage(null), 2000);
+        
+        if (isAuthenticated) {
+          game.refresh();
+        }
+      } else {
+        setMessage({ type: 'error', text: result.error || 'Purchase failed' });
       }
     } catch (err) {
       setMessage({ type: 'error', text: err.message });
     } finally {
       setPurchasing(false);
+      setTimeout(() => setMessage(null), 2000);
     }
   };
+  
+  const coins = game.gameState?.coins || 0;
 
   // Group items by category (only hats and effects - no glasses)
   const categories = {
@@ -116,14 +148,14 @@ export function ShopPage({ username }) {
 
   if (loading) {
     return (
-      <GameLayout coins={gameState?.coins || 0} className="shop-page">
+      <GameLayout coins={coins} isAuthenticated={isAuthenticated} className="shop-page">
         <div className="shop-loading">Loading shop...</div>
       </GameLayout>
     );
   }
 
   return (
-    <GameLayout coins={gameState?.coins || 0} className="shop-page">
+    <GameLayout coins={coins} isAuthenticated={isAuthenticated} className="shop-page">
       <h1 className="shop-title">Shop</h1>
       
       {message && (
@@ -142,7 +174,7 @@ export function ShopPage({ username }) {
                 <ShopItem
                   key={item.id}
                   item={item}
-                  canAfford={(gameState?.coins || 0) >= item.price}
+                  canAfford={coins >= item.price}
                   onBuy={handleBuy}
                   purchasing={purchasing}
                 />
@@ -160,7 +192,7 @@ export function ShopPage({ username }) {
                 <ShopItem
                   key={item.id}
                   item={item}
-                  canAfford={(gameState?.coins || 0) >= item.price}
+                  canAfford={coins >= item.price}
                   onBuy={handleBuy}
                   purchasing={purchasing}
                 />

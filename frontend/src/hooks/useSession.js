@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
 import { api } from '../api/client';
-import { getStoredGuestFish, clearStoredGuestFish } from './useGuestTank';
+import { getLocalGameState, clearLocalGameState } from './useLocalGame';
 
 /**
  * Session hook with unified login/register flow
  * Automatically creates account if username doesn't exist
- * Syncs guest fish to account on login
+ * Syncs local game state to account on login
  */
 export function useSession() {
   const [username, setUsername] = useState(null);
@@ -31,67 +31,56 @@ export function useSession() {
   };
 
   /**
-   * Sync guest fish to the user's first tank
+   * Sync local game state to the user's account
    */
-  const syncGuestFish = async () => {
-    const guestFish = getStoredGuestFish();
+  const syncLocalGameState = async () => {
+    const localState = getLocalGameState();
     
-    if (guestFish.length === 0) {
+    if (!localState || (!localState.fish?.length && !localState.gameState?.ownedAccessories?.length)) {
       return { synced: 0 };
     }
 
     try {
-      // Get user's tanks
-      const tanks = await api.listTanks();
+      // Send full local game state to backend for migration
+      const result = await api.migrateLocalGameState(localState);
       
-      if (tanks.length === 0) {
-        console.warn('No tanks found to sync fish to');
-        return { synced: 0 };
-      }
-
-      // Sync to the first tank
-      const firstTankId = tanks[0].id;
+      // Clear local game state from localStorage after successful migration
+      clearLocalGameState();
       
-      // Convert guest fish to the format expected by the API
-      const fishToSync = guestFish.map(f => ({
-        species: f.species,
-        name: f.name,
-        color: f.color,
-        size: f.size,
-      }));
-
-      const result = await api.bulkAddFish(firstTankId, fishToSync);
-      
-      // Clear guest fish from localStorage
-      clearStoredGuestFish();
-      
-      return { synced: result.added, skipped: result.skipped };
+      return result;
     } catch (error) {
-      console.error('Failed to sync guest fish:', error);
+      console.error('Failed to sync local game state:', error);
       return { synced: 0, error: error.message };
     }
   };
 
   /**
    * Unified auth - logs in if account exists, creates account if it doesn't
-   * Also syncs any guest fish after successful authentication
-   * Returns { success, isNewUser, error }
+   * Also syncs any local game state after successful authentication
+   * Returns { success, isNewUser, syncResult, error }
    */
   const authenticate = async (usernameInput, password) => {
     try {
       const response = await api.authenticate(usernameInput, password);
       setUsername(response.username);
       
-      // Sync guest fish in the background
-      const guestFish = getStoredGuestFish();
-      if (guestFish.length > 0) {
-        // Don't await - let it happen in background
-        syncGuestFish().catch(console.error);
+      // Sync local game state
+      const localState = getLocalGameState();
+      let syncResult = null;
+      
+      if (localState) {
+        try {
+          syncResult = await syncLocalGameState();
+        } catch (error) {
+          console.error('Failed to sync local game state:', error);
+          // Don't fail login if sync fails
+        }
       }
       
       return { 
         success: true, 
-        isNewUser: response.is_new_user || false 
+        isNewUser: response.is_new_user || false,
+        syncResult,
       };
     } catch (error) {
       return { success: false, error: error.message };

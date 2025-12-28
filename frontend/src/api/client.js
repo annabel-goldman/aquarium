@@ -58,6 +58,15 @@ export const api = {
   logout: () =>
     fetchAPI('/sessions', { method: 'DELETE' }),
 
+  /**
+   * Migrate local game state to authenticated account
+   */
+  migrateLocalGameState: (localState) =>
+    fetchAPI('/sessions/migrate', {
+      method: 'POST',
+      body: JSON.stringify(localState),
+    }),
+
   // ============================================
   // GAME STATE ENDPOINTS
   // ============================================

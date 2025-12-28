@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { LIMITS } from '../config/constants';
 import { Button, Input, Label } from './ui';
-import { getStoredGuestFish } from '../hooks/useGuestTank';
+import { getLocalGameState } from '../hooks/useLocalGame';
 import '../styles/pages/login.css';
 
 export function LoginForm({ onAuthenticate }) {
@@ -13,9 +13,14 @@ export function LoginForm({ onAuthenticate }) {
   const [welcomeMessage, setWelcomeMessage] = useState('');
   const navigate = useNavigate();
 
-  // Check if there are guest fish to sync
-  const guestFish = getStoredGuestFish();
-  const hasGuestFish = guestFish.length > 0;
+  // Check if there is local game data to sync
+  const localState = getLocalGameState();
+  const hasLocalData = localState && (
+    localState.fish?.length > 0 || 
+    localState.gameState?.ownedAccessories?.length > 0 ||
+    (localState.gameState?.coins || 0) > 100
+  );
+  const fishCount = localState?.fish?.length || 0;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -29,26 +34,26 @@ export function LoginForm({ onAuthenticate }) {
       // Show appropriate welcome message
       if (result.isNewUser) {
         setWelcomeMessage(
-          hasGuestFish 
-            ? `Account created! Syncing ${guestFish.length} fish... 🐠`
+          hasLocalData 
+            ? `Account created! Saving your progress... 🐠`
             : 'Account created! Welcome to Aquarium 🐠'
         );
-      } else if (hasGuestFish) {
-        setWelcomeMessage(`Welcome back! Syncing ${guestFish.length} fish... 🐠`);
+      } else if (hasLocalData) {
+        setWelcomeMessage(`Welcome back! Syncing your local data... 🐠`);
       }
       
       // Navigate after a short delay to show the message
       setTimeout(() => {
-        navigate('/aquarium');
-      }, hasGuestFish || result.isNewUser ? 800 : 0);
+        navigate('/tank');
+      }, hasLocalData || result.isNewUser ? 800 : 0);
     } else {
       setError(result.error || 'Authentication failed');
       setLoading(false);
     }
   };
 
-  const handleTryWithoutAccount = () => {
-    navigate('/guest');
+  const handlePlayWithoutAccount = () => {
+    navigate('/tank');
   };
 
   return (
@@ -61,10 +66,10 @@ export function LoginForm({ onAuthenticate }) {
           Enter your credentials to dive in
         </p>
         
-        {/* Show guest fish badge if they have fish */}
-        {hasGuestFish && (
+        {/* Show local data badge if they have progress */}
+        {hasLocalData && (
           <div className="guest-fish-badge">
-            🐠 You have {guestFish.length} fish waiting to be saved!
+            🐠 You have {fishCount} fish and local progress to save!
           </div>
         )}
         
@@ -123,7 +128,7 @@ export function LoginForm({ onAuthenticate }) {
             className="w-full"
             disabled={loading}
           >
-            {loading ? 'Loading...' : (hasGuestFish ? 'Save Fish & Continue' : 'Continue')}
+            {loading ? 'Loading...' : (hasLocalData ? 'Save Progress & Continue' : 'Continue')}
           </Button>
 
           <div className="divider">
@@ -134,10 +139,10 @@ export function LoginForm({ onAuthenticate }) {
             type="button"
             variant="secondary"
             className="w-full"
-            onClick={handleTryWithoutAccount}
+            onClick={handlePlayWithoutAccount}
             disabled={loading}
           >
-            Try without an account
+            Play without an account
           </Button>
 
           <p className="text-center text-sm text-gray-500">

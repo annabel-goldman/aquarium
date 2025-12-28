@@ -5,7 +5,6 @@ import { TankPage } from './pages/TankPage';
 import { LakePage } from './pages/LakePage';
 import { ClosetPage } from './pages/ClosetPage';
 import { ShopPage } from './pages/ShopPage';
-import { GuestTankPage } from './pages/GuestTankPage';
 
 function App() {
   const { username, loading, authenticate, isAuthenticated } = useSession();
@@ -33,68 +32,38 @@ function App() {
           }
         />
         
-        {/* Main Tank (Home) */}
+        {/* Main Tank (Home) - works for both auth and unauth */}
         <Route
           path="/tank"
-          element={
-            isAuthenticated ? (
-              <TankPage username={username} />
-            ) : (
-              <Navigate to="/login" replace />
-            )
-          }
+          element={<TankPage username={username} isAuthenticated={isAuthenticated} />}
         />
         
-        {/* Fishing Lake */}
+        {/* Fishing Lake - works for both auth and unauth */}
         <Route
           path="/lake"
-          element={
-            isAuthenticated ? (
-              <LakePage username={username} />
-            ) : (
-              <Navigate to="/login" replace />
-            )
-          }
+          element={<LakePage username={username} isAuthenticated={isAuthenticated} />}
         />
         
-        {/* Closet */}
+        {/* Closet - works for both auth and unauth */}
         <Route
           path="/closet"
-          element={
-            isAuthenticated ? (
-              <ClosetPage username={username} />
-            ) : (
-              <Navigate to="/login" replace />
-            )
-          }
+          element={<ClosetPage username={username} isAuthenticated={isAuthenticated} />}
         />
         
-        {/* Shop */}
+        {/* Shop - works for both auth and unauth */}
         <Route
           path="/shop"
-          element={
-            isAuthenticated ? (
-              <ShopPage username={username} />
-            ) : (
-              <Navigate to="/login" replace />
-            )
-          }
+          element={<ShopPage username={username} isAuthenticated={isAuthenticated} />}
         />
         
-        {/* Default route */}
+        {/* Default route - redirect to tank */}
         <Route
           path="/"
-          element={
-            isAuthenticated ? (
-              <Navigate to="/tank" replace />
-            ) : (
-              <GuestTankPage />
-            )
-          }
+          element={<Navigate to="/tank" replace />}
         />
         
         {/* Legacy redirects */}
-        <Route path="/guest" element={<Navigate to="/" replace />} />
+        <Route path="/guest" element={<Navigate to="/tank" replace />} />
         <Route path="/aquarium" element={<Navigate to="/tank" replace />} />
         <Route path="/tanks/:tankId" element={<Navigate to="/tank" replace />} />
       </Routes>

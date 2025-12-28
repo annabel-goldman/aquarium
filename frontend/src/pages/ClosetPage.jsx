@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useGame } from '../hooks/useGame';
+import { useUnifiedGame } from '../hooks/useUnifiedGame';
 import { GameLayout } from '../components/layout';
 import { FishPreview } from '../components/FishPreview';
 import { MiniSprite } from '../components/MiniSprite';
@@ -48,10 +48,14 @@ function FishCard({ fish, selected, onClick }) {
   );
 }
 
-export function ClosetPage({ username }) {
-  const { gameState, fish, ownedAccessories, applyAccessory } = useGame();
+export function ClosetPage({ username, isAuthenticated }) {
+  const game = useUnifiedGame(isAuthenticated);
   const [selectedFish, setSelectedFish] = useState(null);
   const [message, setMessage] = useState(null);
+  
+  const fish = game.fish || [];
+  const ownedAccessories = game.ownedAccessories || [];
+  const coins = game.gameState?.coins || 0;
   
   useEffect(() => {
     if (fish.length > 0 && !selectedFish) {
@@ -85,7 +89,7 @@ export function ClosetPage({ username }) {
     const isEquipped = selectedFish.accessories?.[item.slot] === item.id;
     const newValue = isEquipped ? null : item.id;
     
-    const result = await applyAccessory(selectedFish.id, item.slot, newValue);
+    const result = await game.applyAccessory(selectedFish.id, item.slot, newValue);
     
     if (result.success) {
       setMessage({ 
@@ -101,7 +105,7 @@ export function ClosetPage({ username }) {
   };
 
   return (
-    <GameLayout coins={gameState?.coins || 0} className="closet-page">
+    <GameLayout coins={coins} isAuthenticated={isAuthenticated} className="closet-page">
       {message && (
         <div className={`toast closet-toast ${message.type}`}>
           {message.text}

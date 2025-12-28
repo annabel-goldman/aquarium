@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef } from 'react';
-import { useGame } from '../hooks/useGame';
+import { useUnifiedGame } from '../hooks/useUnifiedGame';
 import { useFishAnimation } from '../hooks/useFishAnimation';
 import { TankLayout, FishCounter } from '../components/layout';
 import { TankView } from '../components/TankView';
@@ -8,7 +8,7 @@ import { ControlsPanel } from '../components/ControlsPanel';
 import { ToolDock } from '../components/ToolDock';
 import '../styles/pages/tank.css';
 
-export function TankPage({ username }) {
+export function TankPage({ username, isAuthenticated }) {
   const {
     gameState,
     tank,
@@ -19,7 +19,7 @@ export function TankPage({ username }) {
     feed,
     cleanPoop,
     releaseFish,
-  } = useGame();
+  } = useUnifiedGame(isAuthenticated);
   
   const [foodParticles, setFoodParticles] = useState([]);
   const [showNametags, setShowNametags] = useState(false);
@@ -89,7 +89,7 @@ export function TankPage({ username }) {
   const poopPositions = tank?.poopPositions || [];
 
   return (
-    <TankLayout coins={gameState?.coins || 0}>
+    <TankLayout coins={gameState?.coins || 0} isAuthenticated={isAuthenticated}>
       {/* Tank View */}
       <TankView 
         fish={animatedFish} 
