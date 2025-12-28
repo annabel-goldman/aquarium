@@ -1,0 +1,24 @@
+<svg viewBox="0 0 48 36" xmlns="http://www.w3.org/2000/svg">
+  <!-- Cozy Beanie for Fish -->
+  
+  <!-- Pom pom -->
+  <circle cx="24" cy="6" r="6" fill="#ff7043"/>
+  <circle cx="22" cy="4" r="2" fill="#ff8a65" opacity="0.7"/>
+  <circle cx="26" cy="7" r="1.5" fill="#ff5722" opacity="0.5"/>
+  
+  <!-- Hat body -->
+  <ellipse cx="24" cy="26" rx="22" ry="12" fill="#4fc3f7"/>
+  <path d="M 4 22 Q 24 4 44 22" fill="#29b6f6"/>
+  
+  <!-- Ribbed texture -->
+  <path d="M 8 28 L 10 14" stroke="#81d4fa" stroke-width="2" opacity="0.5"/>
+  <path d="M 16 30 L 17 12" stroke="#81d4fa" stroke-width="2" opacity="0.5"/>
+  <path d="M 24 32 L 24 10" stroke="#81d4fa" stroke-width="2" opacity="0.5"/>
+  <path d="M 32 30 L 31 12" stroke="#81d4fa" stroke-width="2" opacity="0.5"/>
+  <path d="M 40 28 L 38 14" stroke="#81d4fa" stroke-width="2" opacity="0.5"/>
+  
+  <!-- Bottom fold/cuff -->
+  <ellipse cx="24" cy="32" rx="20" ry="4" fill="#0288d1"/>
+  <ellipse cx="24" cy="31" rx="18" ry="3" fill="#03a9f4"/>
+</svg>
+

@@ -1,0 +1,97 @@
+/* ============================================
+   TOP HUD
+   Top of screen with coins and logout
+   ============================================ */
+
+.top-hud {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 40;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 0.5rem;
+  pointer-events: none;
+}
+
+.top-hud > * {
+  pointer-events: auto;
+}
+
+/* Coin Display - Center */
+.top-hud .coin-display {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  background: rgba(251, 191, 36, 0.7);
+  backdrop-filter: blur(8px);
+  padding: 0.35rem 0.75rem;
+  border-radius: 20px;
+  font-weight: 700;
+  color: #78350F;
+}
+
+.top-hud .coin-icon-img {
+  width: 20px;
+  height: 20px;
+}
+
+.top-hud .coin-amount {
+  font-size: 0.9rem;
+  min-width: 1.5rem;
+  text-align: center;
+}
+
+/* Logout Button - Right */
+.top-hud .logout-btn {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  
+  padding: 0.35rem 0.6rem;
+  
+  border: none;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.25);
+  backdrop-filter: blur(8px);
+  
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.7rem;
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.top-hud .logout-btn:hover {
+  background: rgba(239, 68, 68, 0.7);
+  color: white;
+}
+
+.top-hud .logout-btn:active {
+  transform: scale(0.95);
+}
+
+/* Mobile adjustments */
+@media (max-width: 400px) {
+  .top-hud .coin-display {
+    padding: 0.3rem 0.6rem;
+  }
+  
+  .top-hud .coin-icon-img {
+    width: 18px;
+    height: 18px;
+  }
+  
+  .top-hud .coin-amount {
+    font-size: 0.8rem;
+  }
+}
+

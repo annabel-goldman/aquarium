@@ -1,0 +1,26 @@
+<svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+  <!-- Sparkle Aura Effect -->
+  
+  <!-- Central sparkle -->
+  <polygon points="24,4 26,18 40,20 26,22 28,36 24,24 20,36 22,22 8,20 22,18" 
+           fill="#fff59d"/>
+  <polygon points="24,8 25,18 36,20 25,22 26,32 24,24 22,32 23,22 12,20 23,18" 
+           fill="#ffeb3b"/>
+  
+  <!-- Small sparkles around -->
+  <polygon points="8,8 9,12 13,13 9,14 10,18 8,14 6,18 7,14 3,13 7,12" 
+           fill="#fff59d" opacity="0.8"/>
+  
+  <polygon points="40,10 41,13 44,14 41,15 42,18 40,15 38,18 39,15 36,14 39,13" 
+           fill="#fff59d" opacity="0.7"/>
+  
+  <polygon points="12,36 13,39 16,40 13,41 14,44 12,41 10,44 11,41 8,40 11,39" 
+           fill="#fff59d" opacity="0.6"/>
+  
+  <polygon points="38,38 39,40 41,41 39,42 40,44 38,42 36,44 37,42 35,41 37,40" 
+           fill="#fff59d" opacity="0.5"/>
+  
+  <!-- Glow effect -->
+  <circle cx="24" cy="20" r="6" fill="#ffeb3b" opacity="0.2"/>
+</svg>
+

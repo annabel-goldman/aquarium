@@ -1,0 +1,24 @@
+<svg viewBox="0 0 32 40" xmlns="http://www.w3.org/2000/svg">
+  <!-- Fancy Monocle for Fish -->
+  
+  <!-- Monocle frame -->
+  <circle cx="16" cy="14" r="12" fill="none" stroke="#c9a227" stroke-width="3"/>
+  <circle cx="16" cy="14" r="10" fill="#e3f2fd" opacity="0.25"/>
+  
+  <!-- Inner gold ring -->
+  <circle cx="16" cy="14" r="9" fill="none" stroke="#e6c84a" stroke-width="1"/>
+  
+  <!-- Lens shine -->
+  <ellipse cx="12" cy="10" rx="4" ry="2.5" fill="white" opacity="0.4"/>
+  
+  <!-- Chain -->
+  <path d="M 16 26 Q 20 30 16 34 Q 12 38 16 40" 
+        stroke="#c9a227" stroke-width="1.5" fill="none"/>
+  
+  <!-- Chain attachment -->
+  <circle cx="16" cy="26" r="2" fill="#c9a227"/>
+  
+  <!-- Decorative flourish -->
+  <path d="M 4 8 Q 2 14 4 20" stroke="#c9a227" stroke-width="1" fill="none" opacity="0.6"/>
+</svg>
+

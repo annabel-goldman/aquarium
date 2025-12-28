@@ -1,0 +1,16 @@
+<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+  <!-- Outer ring -->
+  <circle cx="16" cy="16" r="14" fill="#F59E0B"/>
+  <circle cx="16" cy="16" r="12" fill="#FBBF24"/>
+  
+  <!-- Inner shine -->
+  <ellipse cx="12" cy="11" rx="4" ry="3" fill="#FDE68A" opacity="0.6"/>
+  
+  <!-- Dollar sign or fish symbol -->
+  <text x="16" y="21" text-anchor="middle" font-size="12" font-weight="bold" fill="#92400E" font-family="sans-serif">$</text>
+  
+  <!-- Edge detail -->
+  <circle cx="16" cy="16" r="14" fill="none" stroke="#D97706" stroke-width="1"/>
+  <circle cx="16" cy="16" r="11" fill="none" stroke="#FCD34D" stroke-width="0.5" opacity="0.5"/>
+</svg>
+

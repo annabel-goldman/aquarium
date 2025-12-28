@@ -1,11 +1,27 @@
 /* ============================================
    TANK VIEW STYLES
    The main aquarium SVG display
+   Background now handled by WaterBackground
    ============================================ */
+
+.tank-container {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
 
 .tank-svg {
   width: 100vw;
   height: 100vh;
-  background: linear-gradient(to bottom, #3b82f6 0%, #2563eb 50%, #1e40af 100%);
+  /* Background is now in WaterBackground component */
 }
 
+/* Fish eating animation */
+.fish-eating {
+  animation: fish-chomp 0.15s ease-in-out infinite;
+}
+
+@keyframes fish-chomp {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05, 0.95); }
+}

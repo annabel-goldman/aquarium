@@ -1,0 +1,111 @@
+/* ============================================
+   METER BARS
+   Hunger, Cleanliness, and Happiness meters
+   ============================================ */
+
+.meter-bar {
+  width: 100%;
+}
+
+.meter-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.25rem;
+}
+
+.meter-icon {
+  font-size: 0.9rem;
+}
+
+.meter-label {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.9);
+  flex: 1;
+}
+
+.meter-value {
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+
+.meter-track {
+  height: 8px;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 4px;
+  overflow: hidden;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.meter-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.5s ease, background-color 0.3s ease;
+}
+
+/* Size variants */
+.meter-sm .meter-track {
+  height: 6px;
+}
+
+.meter-lg .meter-track {
+  height: 12px;
+}
+
+/* Color states */
+.meter-good {
+  color: #4ADE80;
+}
+
+.meter-good .meter-fill {
+  background: linear-gradient(90deg, #22C55E, #4ADE80);
+}
+
+.meter-warning {
+  color: #FBBF24;
+}
+
+.meter-warning .meter-fill {
+  background: linear-gradient(90deg, #F59E0B, #FBBF24);
+}
+
+.meter-danger {
+  color: #F87171;
+}
+
+.meter-danger .meter-fill {
+  background: linear-gradient(90deg, #EF4444, #F87171);
+}
+
+/* Tank meters container */
+.tank-meters {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  background: rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(8px);
+  padding: 0.75rem;
+  border-radius: 12px;
+  min-width: 140px;
+}
+
+/* Happiness meter special styling */
+.meter-happiness .meter-track {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.meter-happiness.meter-good .meter-fill {
+  background: linear-gradient(90deg, #F472B6, #FB7185, #FBBF24);
+  animation: happiness-glow 2s ease-in-out infinite;
+}
+
+@keyframes happiness-glow {
+  0%, 100% {
+    box-shadow: 0 0 8px rgba(251, 191, 36, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 16px rgba(251, 191, 36, 0.8);
+  }
+}
+

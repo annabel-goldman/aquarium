@@ -1,0 +1,33 @@
+<svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+  <!-- Lucky Clover Effect -->
+  
+  <!-- Four leaf clover -->
+  <!-- Top leaf -->
+  <ellipse cx="24" cy="12" rx="8" ry="10" fill="#4caf50"/>
+  <path d="M 24 22 L 20 12 Q 24 6 28 12 Z" fill="#388e3c"/>
+  
+  <!-- Bottom leaf -->
+  <ellipse cx="24" cy="36" rx="8" ry="10" fill="#4caf50"/>
+  <path d="M 24 26 L 20 36 Q 24 42 28 36 Z" fill="#388e3c"/>
+  
+  <!-- Left leaf -->
+  <ellipse cx="12" cy="24" rx="10" ry="8" fill="#4caf50"/>
+  <path d="M 22 24 L 12 20 Q 6 24 12 28 Z" fill="#388e3c"/>
+  
+  <!-- Right leaf -->
+  <ellipse cx="36" cy="24" rx="10" ry="8" fill="#4caf50"/>
+  <path d="M 26 24 L 36 20 Q 42 24 36 28 Z" fill="#388e3c"/>
+  
+  <!-- Center -->
+  <circle cx="24" cy="24" r="4" fill="#2e7d32"/>
+  
+  <!-- Highlights -->
+  <ellipse cx="20" cy="10" rx="2" ry="3" fill="#81c784" opacity="0.6"/>
+  <ellipse cx="10" cy="22" rx="3" ry="2" fill="#81c784" opacity="0.6"/>
+  <ellipse cx="28" cy="38" rx="2" ry="3" fill="#81c784" opacity="0.6"/>
+  <ellipse cx="38" cy="26" rx="3" ry="2" fill="#81c784" opacity="0.6"/>
+  
+  <!-- Stem hint -->
+  <rect x="22" y="42" width="4" height="6" rx="2" fill="#2e7d32"/>
+</svg>
+

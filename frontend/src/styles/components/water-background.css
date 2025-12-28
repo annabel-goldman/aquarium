@@ -1,0 +1,125 @@
+/* ============================================
+   WATER BACKGROUND
+   Shared background with light rays and bubbles
+   ============================================ */
+
+.water-bg {
+  position: fixed;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    #0ea5e9 0%,
+    #0284c7 15%,
+    #0369a1 35%,
+    #075985 55%,
+    #0c4a6e 75%,
+    #083344 100%
+  );
+  overflow: hidden;
+}
+
+/* Variant for shop - slightly purple tint */
+.water-bg--shop {
+  background: linear-gradient(
+    180deg,
+    #7dd3fc 0%,
+    #38bdf8 10%,
+    #0ea5e9 25%,
+    #0284c7 45%,
+    #7c3aed20 70%,
+    #6d28d920 100%
+  );
+}
+
+.water-content {
+  position: relative;
+  z-index: 10;
+  height: 100%;
+}
+
+/* Surface shimmer */
+.water-surface {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 10%;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.35),
+    rgba(255, 255, 255, 0.1) 60%,
+    transparent
+  );
+  animation: surface-wave 3s ease-in-out infinite;
+  z-index: 2;
+  pointer-events: none;
+}
+
+@keyframes surface-wave {
+  0%, 100% { transform: translateY(0); opacity: 0.9; }
+  50% { transform: translateY(3px); opacity: 1; }
+}
+
+/* Light rays */
+.water-rays {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.water-ray {
+  position: absolute;
+  top: 0;
+  width: 60px;
+  height: 100%;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.15),
+    rgba(255, 255, 255, 0.05) 40%,
+    transparent 80%
+  );
+  transform: skewX(-10deg);
+  left: calc(15% + var(--i) * 22%);
+  animation: ray-shimmer 5s ease-in-out infinite;
+  animation-delay: calc(var(--i) * 1s);
+}
+
+@keyframes ray-shimmer {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 0.6; }
+}
+
+/* Bubbles */
+.water-bubbles {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 3;
+}
+
+.water-bubble {
+  position: absolute;
+  bottom: -20px;
+  width: 10px;
+  height: 10px;
+  background: rgba(255, 255, 255, 0.25);
+  border-radius: 50%;
+  left: calc(8% + var(--i) * 15%);
+  animation: bubble-float 7s ease-in infinite;
+  animation-delay: calc(var(--i) * 1.2s);
+}
+
+@keyframes bubble-float {
+  0% {
+    transform: translateY(0) scale(1);
+    opacity: 0.5;
+  }
+  100% {
+    transform: translateY(calc(-100vh - 40px)) scale(1.5);
+    opacity: 0;
+  }
+}
+

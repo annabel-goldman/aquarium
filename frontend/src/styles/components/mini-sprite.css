@@ -1,0 +1,14 @@
+/* ============================================
+   MINI SPRITE
+   Small fish sprite for selectors and lists
+   ============================================ */
+
+.mini-sprite-placeholder {
+  border-radius: 50%;
+  opacity: 0.5;
+}
+
+.mini-sprite-svg {
+  overflow: visible;
+}
+

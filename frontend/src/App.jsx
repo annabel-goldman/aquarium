@@ -1,17 +1,19 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { useSession } from './hooks/useSession';
 import { LoginForm } from './components/LoginForm';
-import { AquariumPage } from './pages/AquariumPage';
 import { TankPage } from './pages/TankPage';
+import { LakePage } from './pages/LakePage';
+import { ClosetPage } from './pages/ClosetPage';
+import { ShopPage } from './pages/ShopPage';
 import { GuestTankPage } from './pages/GuestTankPage';
 
 function App() {
-  const { username, loading, authenticate, logout, isAuthenticated } = useSession();
+  const { username, loading, authenticate, isAuthenticated } = useSession();
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-100">
-        <div className="text-xl text-gray-600">Loading...</div>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-blue-400 via-blue-500 to-blue-700">
+        <div className="text-xl text-white font-medium">Loading...</div>
       </div>
     );
   }
@@ -19,50 +21,82 @@ function App() {
   return (
     <Router>
       <Routes>
+        {/* Login */}
         <Route
           path="/login"
           element={
             isAuthenticated ? (
-              <Navigate to="/aquarium" replace />
+              <Navigate to="/tank" replace />
             ) : (
               <LoginForm onAuthenticate={authenticate} />
             )
           }
         />
+        
+        {/* Main Tank (Home) */}
         <Route
-          path="/aquarium"
+          path="/tank"
           element={
             isAuthenticated ? (
-              <AquariumPage username={username} onLogout={logout} />
+              <TankPage username={username} />
             ) : (
               <Navigate to="/login" replace />
             )
           }
         />
+        
+        {/* Fishing Lake */}
         <Route
-          path="/tanks/:tankId"
+          path="/lake"
           element={
             isAuthenticated ? (
-              <TankPage username={username} onLogout={logout} />
+              <LakePage username={username} />
             ) : (
               <Navigate to="/login" replace />
             )
           }
         />
-        {/* Default route - guest mode for unauthenticated, aquarium for authenticated */}
+        
+        {/* Closet */}
+        <Route
+          path="/closet"
+          element={
+            isAuthenticated ? (
+              <ClosetPage username={username} />
+            ) : (
+              <Navigate to="/login" replace />
+            )
+          }
+        />
+        
+        {/* Shop */}
+        <Route
+          path="/shop"
+          element={
+            isAuthenticated ? (
+              <ShopPage username={username} />
+            ) : (
+              <Navigate to="/login" replace />
+            )
+          }
+        />
+        
+        {/* Default route */}
         <Route
           path="/"
           element={
             isAuthenticated ? (
-              <Navigate to="/aquarium" replace />
+              <Navigate to="/tank" replace />
             ) : (
               <GuestTankPage />
             )
           }
         />
+        
         {/* Legacy redirects */}
         <Route path="/guest" element={<Navigate to="/" replace />} />
-        <Route path="/tank" element={<Navigate to="/aquarium" replace />} />
+        <Route path="/aquarium" element={<Navigate to="/tank" replace />} />
+        <Route path="/tanks/:tankId" element={<Navigate to="/tank" replace />} />
       </Routes>
     </Router>
   );

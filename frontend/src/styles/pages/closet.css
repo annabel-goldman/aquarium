@@ -1,0 +1,265 @@
+/* ============================================
+   CLOSET PAGE - Side by side layout
+   Accessories on left, fish preview on right
+   ============================================ */
+
+/* Closet page styles - used within GameLayout */
+.closet-page {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 3.5rem 1rem 5.5rem; /* Space for TopHUD and BottomNav */
+}
+
+/* Toast message - uses shared .toast styles from globals.css */
+.closet-toast {
+  /* Extends .toast with smaller size for closet page */
+  padding: 0.4rem 0.8rem;
+  font-size: 0.75rem;
+  border-radius: 8px;
+}
+
+/* Empty state */
+.closet-empty {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255, 255, 255, 0.9);
+  text-align: center;
+}
+
+.closet-empty p {
+  margin: 0.25rem 0;
+  font-size: 1rem;
+}
+
+/* Main layout - side by side, aligned tops and bottoms */
+.closet-layout {
+  flex: 1;
+  display: flex;
+  gap: 0.75rem;
+  min-height: 0;
+  align-items: stretch;
+}
+
+/* ============================================
+   LEFT: Accessories Sidebar
+   ============================================ */
+
+.accessories-sidebar {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 12px;
+  padding: 0.5rem;
+  overflow-y: auto;
+}
+
+/* Accessory slot section (hats, effects) */
+.accessory-slot-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.slot-label {
+  margin: 0;
+  font-size: 1rem;
+  text-align: center;
+  opacity: 0.9;
+}
+
+.accessories-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 52px);
+  gap: 0.4rem;
+}
+
+.accessory-tile {
+  position: relative;
+  width: 52px;
+  height: 52px;
+  border: none;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.8);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px;
+}
+
+.accessory-tile img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.accessory-tile:hover {
+  background: white;
+  transform: scale(1.05);
+}
+
+.accessory-tile.equipped {
+  background: rgba(59, 130, 246, 0.3);
+  border: 2px solid #3B82F6;
+}
+
+.accessory-tile .equipped-check {
+  position: absolute;
+  top: -3px;
+  right: -3px;
+  width: 16px;
+  height: 16px;
+  background: #3B82F6;
+  color: white;
+  border-radius: 50%;
+  font-size: 0.55rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.accessory-tile.not-owned {
+  background: rgba(255, 255, 255, 0.4);
+  opacity: 0.8;
+}
+
+.accessory-tile.not-owned img {
+  opacity: 0.6;
+}
+
+.accessory-tile.not-owned:hover {
+  opacity: 1;
+  background: rgba(255, 255, 255, 0.7);
+}
+
+.accessory-tile.cant-afford {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.tile-price {
+  position: absolute;
+  bottom: 2px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  background: rgba(0, 0, 0, 0.6);
+  padding: 1px 5px;
+  border-radius: 6px;
+}
+
+.tile-price img {
+  width: 10px;
+  height: 10px;
+}
+
+.tile-price span {
+  font-size: 0.55rem;
+  font-weight: 700;
+  color: white;
+}
+
+/* ============================================
+   RIGHT: Preview Area - takes all remaining width
+   ============================================ */
+
+.preview-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+/* Fish cards row - stretches full width, matches fish preview width */
+.fish-cards-row {
+  display: flex;
+  gap: 0.5rem;
+  overflow-x: auto;
+  padding: 0.5rem;
+  -webkit-overflow-scrolling: touch;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+}
+
+.fish-card {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+  padding: 0.4rem 0.6rem;
+  border: 2px solid transparent;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.7);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.fish-card:hover {
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.fish-card.selected {
+  background: white;
+  border-color: #3B82F6;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+}
+
+.fish-card-sprite {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.fish-card-name {
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: #1F2937;
+  max-width: 60px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Preview Container - fills remaining height */
+.preview-container {
+  flex: 1;
+  display: flex;
+  align-items: stretch;
+  justify-content: stretch;
+  min-height: 0;
+  margin-bottom: 1.5rem; /* Align with bottom of closet items */
+}
+
+/* Override fish preview - fills available space */
+.preview-container .fish-preview {
+  width: 100%;
+  height: 100%;
+  border-radius: 12px;
+}
+
+/* Mobile: Adjust grid on very small screens */
+@media (max-width: 360px) {
+  .accessories-grid {
+    grid-template-columns: repeat(2, 48px);
+  }
+  
+  .accessory-tile {
+    width: 48px;
+    height: 48px;
+  }
+}

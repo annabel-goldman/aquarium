@@ -1,0 +1,26 @@
+<svg viewBox="0 0 48 56" xmlns="http://www.w3.org/2000/svg">
+  <!-- Wizard Hat for Fish -->
+  
+  <!-- Hat cone -->
+  <polygon points="24,0 2,48 46,48" fill="#4a148c"/>
+  
+  <!-- Gradient/highlight -->
+  <polygon points="24,0 8,40 20,40" fill="#6a1b9a" opacity="0.6"/>
+  
+  <!-- Brim -->
+  <ellipse cx="24" cy="48" rx="22" ry="6" fill="#311b92"/>
+  <ellipse cx="24" cy="47" rx="20" ry="5" fill="#4527a0"/>
+  
+  <!-- Stars decoration -->
+  <polygon points="16,20 17,23 20,23 18,25 19,28 16,26 13,28 14,25 12,23 15,23" fill="#ffd700"/>
+  <polygon points="32,30 33,32 35,32 33.5,34 34,36 32,35 30,36 30.5,34 29,32 31,32" fill="#ffd700" opacity="0.8"/>
+  <polygon points="20,38 20.5,40 22,40 21,41 21.5,43 20,42 18.5,43 19,41 18,40 19.5,40" fill="#ffd700" opacity="0.6"/>
+  
+  <!-- Moon decoration -->
+  <circle cx="34" cy="18" r="5" fill="#ffd700"/>
+  <circle cx="36" cy="17" r="4" fill="#4a148c"/>
+  
+  <!-- Tip sparkle -->
+  <circle cx="24" cy="3" r="2" fill="#fff" opacity="0.8"/>
+</svg>
+

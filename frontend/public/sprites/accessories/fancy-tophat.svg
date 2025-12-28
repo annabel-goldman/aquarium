@@ -1,0 +1,37 @@
+<svg viewBox="0 0 52 48" xmlns="http://www.w3.org/2000/svg">
+  <!-- Fancy Top Hat for Fish - More ornate version -->
+  
+  <!-- Hat brim (wide ellipse at bottom) -->
+  <ellipse cx="26" cy="42" rx="24" ry="5" fill="#1a1a2e"/>
+  <ellipse cx="26" cy="41" rx="22" ry="4" fill="#2d2d44"/>
+  
+  <!-- Hat body (tall cylinder) -->
+  <rect x="8" y="8" width="36" height="34" rx="2" fill="#1a1a2e"/>
+  
+  <!-- Hat top (ellipse) -->
+  <ellipse cx="26" cy="8" rx="18" ry="5" fill="#2d2d44"/>
+  
+  <!-- Elegant highlight on body -->
+  <rect x="10" y="10" width="5" height="30" rx="2" fill="#3d3d5c" opacity="0.4"/>
+  
+  <!-- Fancy ribbon band -->
+  <rect x="8" y="28" width="36" height="7" fill="#8b0000"/>
+  <rect x="8" y="28" width="36" height="2" fill="#a52a2a" opacity="0.7"/>
+  
+  <!-- Decorative feather -->
+  <path d="M 40 10 Q 48 4 50 12 Q 48 8 46 14 Q 44 10 42 16 Q 40 12 40 18" 
+        fill="#c9a227" opacity="0.9"/>
+  <path d="M 40 10 L 40 28" stroke="#c9a227" stroke-width="1"/>
+  
+  <!-- Gold buckle -->
+  <ellipse cx="26" cy="31" rx="5" ry="4" fill="#e6c84a"/>
+  <ellipse cx="26" cy="31" rx="3" ry="2.5" fill="#1a1a2e"/>
+  
+  <!-- Top shine -->
+  <ellipse cx="22" cy="7" rx="10" ry="3" fill="#4a4a6a" opacity="0.3"/>
+  
+  <!-- Diamond on band -->
+  <polygon points="18,31 20,28 22,31 20,34" fill="#e0e0e0"/>
+  <polygon points="30,31 32,28 34,31 32,34" fill="#e0e0e0"/>
+</svg>
+

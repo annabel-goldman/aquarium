@@ -1,0 +1,29 @@
+<svg viewBox="0 0 56 44" xmlns="http://www.w3.org/2000/svg">
+  <!-- Pirate Hat for Fish -->
+  
+  <!-- Hat body (tricorn shape) -->
+  <ellipse cx="28" cy="32" rx="26" ry="10" fill="#1a1a2e"/>
+  <path d="M 4 28 Q 28 8 52 28 Q 40 36 28 32 Q 16 36 4 28" fill="#2d2d44"/>
+  
+  <!-- Upturned brims -->
+  <path d="M 2 30 Q 8 18 20 26" fill="#1a1a2e" stroke="#3d3d5c" stroke-width="1"/>
+  <path d="M 54 30 Q 48 18 36 26" fill="#1a1a2e" stroke="#3d3d5c" stroke-width="1"/>
+  
+  <!-- Skull and crossbones emblem -->
+  <circle cx="28" cy="24" r="6" fill="#f5f5f5"/>
+  
+  <!-- Skull eyes -->
+  <ellipse cx="26" cy="23" rx="1.5" ry="2" fill="#1a1a2e"/>
+  <ellipse cx="30" cy="23" rx="1.5" ry="2" fill="#1a1a2e"/>
+  
+  <!-- Skull nose -->
+  <polygon points="28,25 27,27 29,27" fill="#1a1a2e"/>
+  
+  <!-- Crossbones behind skull -->
+  <rect x="18" y="22" width="20" height="3" rx="1.5" fill="#f5f5f5" transform="rotate(-20 28 24)"/>
+  <rect x="18" y="22" width="20" height="3" rx="1.5" fill="#f5f5f5" transform="rotate(20 28 24)"/>
+  
+  <!-- Gold trim -->
+  <path d="M 4 30 Q 28 38 52 30" stroke="#c9a227" stroke-width="2" fill="none"/>
+</svg>
+

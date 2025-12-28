@@ -1,0 +1,151 @@
+/* ============================================
+   FISH PREVIEW
+   Large preview for closet display
+   ============================================ */
+
+.fish-preview {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 200px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.fish-preview.loading {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.loading-spinner {
+  width: 28px;
+  height: 28px;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.preview-stage {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.preview-fish {
+  position: relative;
+  width: 160px;
+  height: 160px;
+  animation: fishFloat 3s ease-in-out infinite;
+}
+
+@keyframes fishFloat {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+}
+
+.fish-svg {
+  width: 100%;
+  height: 100%;
+}
+
+/* Fish renderer container */
+.fish-renderer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Loading placeholder */
+.fish-loading {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 0.6; }
+}
+
+/* Fish name display */
+.preview-name {
+  text-align: center;
+  background: rgba(255, 255, 255, 0.9);
+  padding: 0.4rem 1rem;
+  border-radius: 20px;
+}
+
+.name-text {
+  display: block;
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: #1F2937;
+}
+
+.species-text {
+  display: block;
+  font-size: 0.7rem;
+  color: #6B7280;
+}
+
+/* Decorative bubbles */
+.preview-bubbles {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.bubble {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  background: radial-gradient(circle at 30% 30%, 
+    rgba(255, 255, 255, 0.6),
+    rgba(255, 255, 255, 0.15)
+  );
+  border-radius: 50%;
+  animation: bubbleRise 5s ease-in-out infinite;
+}
+
+.bubble.b1 {
+  left: 15%;
+  bottom: 10%;
+  animation-delay: 0s;
+  width: 8px;
+  height: 8px;
+}
+
+.bubble.b2 {
+  left: 80%;
+  bottom: 5%;
+  animation-delay: 2s;
+}
+
+.bubble.b3 {
+  left: 90%;
+  bottom: 25%;
+  animation-delay: 4s;
+  width: 6px;
+  height: 6px;
+}
+
+@keyframes bubbleRise {
+  0% {
+    transform: translateY(0) scale(1);
+    opacity: 0.5;
+  }
+  100% {
+    transform: translateY(-100px) scale(0.5);
+    opacity: 0;
+  }
+}

@@ -6,14 +6,40 @@
 /* Global styles and Tailwind directives */
 @import './globals.css';
 
-/* Page styles */
+/* ============================================
+   PAGE STYLES
+   One file per page component
+   ============================================ */
 @import './pages/login.css';
-@import './pages/aquarium.css';
 @import './pages/tank.css';
+@import './pages/guest-tank.css';
+@import './pages/lake.css';
+@import './pages/shop.css';
+@import './pages/closet.css';
 
-/* Component styles */
-@import './components/controls-panel.css';
+/* ============================================
+   COMPONENT STYLES
+   One file per major component
+   ============================================ */
+
+/* Navigation and layout */
+@import './components/bottom-nav.css';
+@import './components/logout-button.css';
+@import './components/layout.css';
+@import './components/top-hud.css';
+@import './components/fish-counter.css';
+
+/* Tank components */
 @import './components/tank-view.css';
-@import './components/fish-list.css';
-@import './components/modals.css';
+@import './components/water-background.css';
+@import './components/tool-dock.css';
+@import './components/poop-sprite.css';
 
+/* Fish components */
+@import './components/fish-preview.css';
+@import './components/mini-sprite.css';
+
+/* UI components */
+@import './components/controls-panel.css';
+@import './components/modals.css';
+@import './components/meters.css';

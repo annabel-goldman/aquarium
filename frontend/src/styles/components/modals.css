@@ -1,79 +1,191 @@
 /* ============================================
    MODAL STYLES
-   Shared styles for all modals
+   Catch result, swap fish, and other modals
    ============================================ */
 
+/* Modal overlay - uses fadeIn from globals.css */
 .modal-overlay {
-  @apply fixed inset-0 bg-black/50 flex items-center justify-center z-50;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  padding: 1rem;
+  animation: fadeIn 0.2s ease;
 }
 
-.modal-content {
-  @apply bg-white rounded-lg shadow-2xl max-w-md w-[90%] max-h-[90vh] overflow-y-auto;
+/* Catch Modal - uses scaleIn from globals.css */
+.catch-modal {
+  background: white;
+  border-radius: 20px;
+  padding: 1.5rem;
+  max-width: 320px;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  animation: scaleIn 0.3s ease;
 }
 
-.modal-header {
-  @apply flex justify-between items-center px-6 py-4 border-b border-gray-200;
+.catch-modal.junk {
+  background: linear-gradient(135deg, #F3F4F6, #E5E7EB);
 }
 
-.modal-title {
-  @apply text-2xl font-bold text-gray-800;
+.catch-modal.cosmetic {
+  background: linear-gradient(135deg, #FDF4FF, #FAE8FF);
 }
 
-.modal-close-btn {
-  @apply text-gray-500 hover:text-gray-700 transition-colors;
+.catch-modal.coins {
+  background: linear-gradient(135deg, #FEF3C7, #FDE68A);
 }
 
-.modal-body {
-  @apply px-6 py-4;
+.catch-icon {
+  font-size: 3rem;
+  margin-bottom: 0.5rem;
 }
 
-.modal-footer {
-  @apply flex justify-end gap-3 px-6 py-4 border-t border-gray-200;
+.catch-icon.sparkle {
+  animation: sparkleRotate 1s ease-in-out infinite;
 }
 
-/* Add Fish Modal specifics */
-.color-picker-wrapper {
-  @apply flex items-center gap-3 mb-2;
+@keyframes sparkleRotate {
+  0%, 100% { transform: rotate(-5deg) scale(1); }
+  50% { transform: rotate(5deg) scale(1.1); }
 }
 
-.color-picker-input {
-  @apply h-10 w-20 border border-gray-300 rounded cursor-pointer;
+.catch-modal h3 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1F2937;
+  margin: 0 0 0.25rem;
 }
 
-.color-swatches {
-  @apply flex gap-2;
+.catch-modal p {
+  color: #6B7280;
+  margin: 0 0 0.5rem;
 }
 
-.color-swatch {
-  @apply w-8 h-8 rounded border-2 border-gray-300 hover:border-blue-500 transition-colors;
+.catch-subtitle {
+  font-size: 0.85rem;
+  color: #9CA3AF !important;
 }
 
-.size-options {
-  @apply flex gap-4;
+/* Rarity banner */
+.rarity-banner {
+  margin: -1.5rem -1.5rem 1rem;
+  padding: 0.75rem;
+  border-radius: 20px 20px 0 0;
 }
 
-.size-option {
-  @apply flex items-center cursor-pointer;
+.rarity-label {
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
-.size-option-radio {
-  @apply mr-2;
+/* Fish preview */
+.catch-fish-preview {
+  margin: 1rem 0;
 }
 
-.size-option-label {
-  @apply text-gray-700 capitalize;
+.fish-color-circle {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  margin: 0 auto;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
-/* Tank Preview Card */
-.tank-preview-image {
-  @apply w-full h-full bg-gradient-to-b from-blue-300 to-blue-600 flex items-center justify-center;
+.fish-species {
+  color: #9CA3AF;
+  font-size: 0.9rem;
 }
 
-.tank-preview-icon {
-  @apply text-6xl mb-2;
+/* Action buttons */
+.catch-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
 }
 
-.tank-preview-count {
-  @apply text-white text-sm font-medium;
+.modal-btn {
+  padding: 0.875rem 1.5rem;
+  border: none;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
 }
 
+.modal-btn.primary {
+  background: linear-gradient(135deg, #3B82F6, #2563EB);
+  color: white;
+}
+
+.modal-btn.primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(59, 130, 246, 0.4);
+}
+
+.modal-btn.secondary {
+  background: #F3F4F6;
+  color: #4B5563;
+}
+
+.modal-btn.secondary:hover {
+  background: #E5E7EB;
+}
+
+/* Swap fish list */
+.catch-modal.swap-list {
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.swap-fish-list {
+  flex: 1;
+  overflow-y: auto;
+  max-height: 300px;
+  margin: 1rem 0;
+}
+
+.swap-fish-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: none;
+  background: #F9FAFB;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background 0.2s;
+  text-align: left;
+  margin-bottom: 0.5rem;
+}
+
+.swap-fish-item:hover {
+  background: #F3F4F6;
+}
+
+.swap-fish-item .fish-name {
+  flex: 1;
+  font-weight: 600;
+  color: #1F2937;
+}
+
+.swap-fish-item .fish-rarity {
+  font-size: 0.75rem;
+}
+
+.swap-fish-item .fish-coins {
+  font-size: 0.8rem;
+  color: #92400E;
+  font-weight: 500;
+}

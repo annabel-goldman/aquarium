@@ -1,0 +1,38 @@
+<svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+  <!-- Love Hearts Effect -->
+  
+  <!-- Main heart -->
+  <path d="M 24 16 
+           C 18 8, 8 12, 24 28 
+           C 40 12, 30 8, 24 16" 
+        fill="#e91e63"/>
+  <path d="M 24 18 C 21 12, 14 14, 20 22" fill="#f48fb1" opacity="0.5"/>
+  
+  <!-- Smaller hearts floating -->
+  <path d="M 10 12 
+           C 8 9, 4 10, 10 16 
+           C 16 10, 12 9, 10 12" 
+        fill="#f06292" opacity="0.8"/>
+  
+  <path d="M 38 8 
+           C 36 5, 32 6, 38 12 
+           C 44 6, 40 5, 38 8" 
+        fill="#f48fb1" opacity="0.7"/>
+  
+  <path d="M 8 32 
+           C 6 30, 3 31, 8 36 
+           C 13 31, 10 30, 8 32" 
+        fill="#f48fb1" opacity="0.6"/>
+  
+  <path d="M 40 28 
+           C 38 26, 35 27, 40 32 
+           C 45 27, 42 26, 40 28" 
+        fill="#f06292" opacity="0.5"/>
+  
+  <!-- Tiny hearts -->
+  <path d="M 18 38 C 17 37, 15 37, 18 40 C 21 37, 19 37, 18 38" 
+        fill="#f48fb1" opacity="0.4"/>
+  <path d="M 32 42 C 31 41, 29 41, 32 44 C 35 41, 33 41, 32 42" 
+        fill="#f48fb1" opacity="0.4"/>
+</svg>
+

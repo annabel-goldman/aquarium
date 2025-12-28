@@ -1,0 +1,285 @@
+# Cozy Aquarium Game - Development Guide
+
+## Project Overview
+
+A cozy fish tank game where players catch fish, dress them up with accessories, and maintain their tank. Built with React (Vite) frontend and FastAPI (Python) backend.
+
+---
+
+## Directory Structure
+
+```
+aquarium/
+├── backend/                     # Python FastAPI server
+│   ├── app/
+│   │   ├── main.py             # FastAPI app entry point
+│   │   ├── game_config.py      # ⭐ ALL GAME BALANCE SETTINGS
+│   │   ├── auth.py             # Session authentication
+│   │   ├── database.py         # MongoDB connection
+│   │   ├── models.py           # Pydantic models
+│   │   └── routers/
+│   │       ├── sessions.py     # Login/logout/register
+│   │       ├── game.py         # Tank state, fish, feeding
+│   │       ├── fishing.py      # Lake minigame, catching
+│   │       └── shop.py         # Buy/equip accessories
+│   ├── requirements.txt
+│   └── Dockerfile
+│
+├── frontend/                    # React + Vite
+│   ├── src/
+│   │   ├── App.jsx             # Main router
+│   │   ├── main.jsx            # Entry point
+│   │   ├── api/
+│   │   │   └── client.js       # API calls to backend
+│   │   ├── config/
+│   │   │   └── constants.js    # ⭐ FRONTEND CONFIG & ACCESSORY RENDERING
+│   │   ├── components/
+│   │   │   ├── FishRenderer.jsx    # ⭐ Fish + accessory rendering
+│   │   │   ├── TankView.jsx        # Main tank display
+│   │   │   ├── BottomNav.jsx       # Navigation tabs
+│   │   │   ├── layout/             # Shared layout components
+│   │   │   ├── icons/              # Icon components
+│   │   │   └── ui/                 # Reusable UI (Button, Modal, Input)
+│   │   ├── hooks/
+│   │   │   ├── useGame.js          # Main game state hook
+│   │   │   ├── useSession.js       # Auth state
+│   │   │   └── useFishAnimation.js # Fish movement
+│   │   ├── pages/
+│   │   │   ├── TankPage.jsx        # Main tank view
+│   │   │   ├── LakePage.jsx        # Fishing minigame
+│   │   │   ├── ClosetPage.jsx      # Dress up fish
+│   │   │   ├── ShopPage.jsx        # Buy accessories
+│   │   │   └── GuestTankPage.jsx   # Demo mode
+│   │   ├── styles/
+│   │   │   ├── index.css           # Imports all styles
+│   │   │   ├── globals.css         # Base styles, animations
+│   │   │   ├── pages/              # One CSS per page
+│   │   │   └── components/         # One CSS per major component
+│   │   └── utils/
+│   │       └── svgLoader.js        # Load & recolor fish SVGs
+│   └── public/
+│       ├── fish-sprites/           # Fish animation frames
+│       │   └── [species]/tail-1.svg through tail-4.svg
+│       └── sprites/
+│           ├── accessories/        # ⭐ ACCESSORY SPRITES GO HERE
+│           │   └── top-hat.svg
+│           └── tank-tools/         # UI icons
+│
+└── docker-compose.yml
+```
+
+---
+
+## Adding New Shop Items (Accessories)
+
+### Step 1: Create the Sprite
+
+1. Create an SVG file (64x64 recommended)
+2. Save to: `frontend/public/sprites/accessories/[item-name].svg`
+3. Use kebab-case: `party-hat.svg`, `star-glasses.svg`
+
+### Step 2: Add Backend Shop Config
+
+Edit `backend/app/game_config.py` → `SHOP_ITEMS`:
+
+```python
+SHOP_ITEMS = {
+    # ... existing items ...
+    
+    "my_new_hat": {                    # Unique ID (snake_case)
+        "name": "My New Hat",          # Display name
+        "category": "hat",             # hat | effect
+        "price": 75,                   # Cost in coins
+        # Optional:
+        # "catchOnly": True,           # Can't buy, only catch while fishing
+    },
+}
+```
+
+### Step 3: Add Frontend Rendering Config
+
+Edit `frontend/src/config/constants.js` → `ACCESSORY_CONFIG`:
+
+```javascript
+export const ACCESSORY_CONFIG = {
+  // ... existing items ...
+  
+  my_new_hat: {
+    id: 'my_new_hat',                  // Must match backend ID
+    name: 'My New Hat',
+    slot: 'hat',                       // hat | effect
+    sprite: '/sprites/accessories/my-new-hat.svg',
+    
+    // Positioning (adjust until it looks right)
+    offset: { x: 0, y: -10 },          // x: left(-)/right(+), y: up(-)/down(+)
+    size: 0.35,                        // 0.3 = small, 0.5 = large
+    rotation: -5,                      // Degrees, negative = tilt left
+  },
+};
+```
+
+### Step 4: Test
+
+1. Buy item in shop (or give via database)
+2. Equip in closet
+3. Check appearance in tank
+4. Adjust `offset`, `size`, `rotation` until perfect
+
+---
+
+## Adding New Fish Species
+
+### Step 1: Create Sprites
+
+1. Create 4 animation frames (64x64 SVG each):
+   - `tail-1.svg`, `tail-2.svg`, `tail-3.svg`, `tail-4.svg`
+2. Save to: `frontend/public/fish-sprites/[species-name]/`
+3. Use lowercase: `pufferfish/`, `jellyfish/`
+
+### Step 2: Add to Backend
+
+Edit `backend/app/game_config.py`:
+
+```python
+FISH_SPECIES = [
+    "Angelfish",
+    "Clownfish",
+    # ... existing ...
+    "Pufferfish",   # Add new species (PascalCase)
+]
+```
+
+### Step 3: Add to Frontend
+
+Edit `frontend/src/config/constants.js`:
+
+```javascript
+export const FISH_SPECIES = [
+  // ... existing ...
+  'Pufferfish',
+];
+
+export const SPECIES_SPRITE_MAP = {
+  // ... existing ...
+  'Pufferfish': 'pufferfish',  // Maps to folder name
+};
+
+// Add head position for accessory placement
+export const SPECIES_HEAD_POSITIONS = {
+  // ... existing ...
+  'Pufferfish': { x: 15, y: -5 },  // Adjust for species shape
+};
+```
+
+---
+
+## Key Configuration Files
+
+### Backend: `game_config.py`
+Controls ALL game balance:
+- `STARTING_COINS` - Initial player coins
+- `STARTING_MAX_FISH` - Initial tank capacity
+- `RARITY_WEIGHTS` - How often each rarity spawns
+- `RARITY_COIN_VALUES` - Release value per rarity
+- `POOP_GENERATION_INTERVAL` - How often fish poop
+- `CATCH_*_CHANCE` - Fishing drop rates
+- `SHOP_ITEMS` - All purchasable items
+
+### Frontend: `constants.js`
+Controls ALL UI/rendering:
+- `FISH_SIZE_CONFIG` - Fish visual sizes and speeds
+- `ACCESSORY_CONFIG` - How accessories render
+- `COIN_CONFIG` - Lake coin spawning
+- `METER_THRESHOLDS` - Hunger/cleanliness colors
+
+---
+
+## Code Patterns to Follow
+
+### Adding a New Page
+
+1. Create `frontend/src/pages/NewPage.jsx`
+2. Create `frontend/src/styles/pages/new-page.css`
+3. Import CSS in `styles/index.css`
+4. Add route in `App.jsx`
+5. Use `GameLayout` wrapper for consistent UI
+
+### Adding a New Component
+
+1. Create `frontend/src/components/NewComponent.jsx`
+2. If complex, create `frontend/src/styles/components/new-component.css`
+3. Import CSS in `styles/index.css`
+4. Keep components focused - one responsibility each
+
+### API Pattern
+
+```javascript
+// In api/client.js
+export const api = {
+  async newEndpoint(data) {
+    return fetchApi('/api/new-endpoint', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
+};
+
+// In backend routers/
+@router.post("/new-endpoint")
+async def new_endpoint(data: dict, username: str = Depends(get_current_username)):
+    # Implementation
+    return {"success": True}
+```
+
+---
+
+## Avoiding Code Debt
+
+### DO:
+- ✅ Use config files for all tunable values
+- ✅ Keep components small and focused
+- ✅ One CSS file per page/component
+- ✅ Use shared layout components (GameLayout, TopHUD)
+- ✅ Match IDs between backend and frontend
+- ✅ Add comments explaining "why" not "what"
+
+### DON'T:
+- ❌ Hardcode numbers (use config)
+- ❌ Duplicate logic between files
+- ❌ Add inline styles (use CSS classes)
+- ❌ Create components without CSS cleanup
+- ❌ Add features without updating both backend AND frontend configs
+
+---
+
+## Quick Reference
+
+| Task | Files to Edit |
+|------|---------------|
+| Add shop item | `game_config.py` SHOP_ITEMS + `constants.js` ACCESSORY_CONFIG + sprite |
+| Change prices | `game_config.py` SHOP_ITEMS |
+| Change rarity rates | `game_config.py` RARITY_WEIGHTS |
+| Change fish speed | `constants.js` FISH_SIZE_CONFIG |
+| Add fish species | `game_config.py` + `constants.js` + sprite folder |
+| Change starting coins | `game_config.py` STARTING_COINS |
+| Change poop rate | `game_config.py` POOP_GENERATION_INTERVAL |
+| Change coin spawns | `constants.js` COIN_CONFIG |
+
+---
+
+## Running Locally
+
+```bash
+# Backend
+cd backend
+pip install -r requirements.txt
+uvicorn app.main:app --reload
+
+# Frontend  
+cd frontend
+npm install
+npm run dev
+```
+
+Access at: http://localhost:5173
+

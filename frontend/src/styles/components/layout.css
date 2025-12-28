@@ -1,0 +1,19 @@
+/* ============================================
+   GAME LAYOUT
+   Shared layout wrapper for game pages
+   ============================================ */
+
+.game-layout-content {
+  position: relative;
+  height: 100%;
+  width: 100%;
+}
+
+.tank-layout {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+}
+

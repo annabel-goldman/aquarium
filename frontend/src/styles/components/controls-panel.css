@@ -1,6 +1,6 @@
 /* ============================================
    CONTROLS PANEL STYLES
-   Slide-out panel for tank controls
+   Slide-out panel for tank settings
    ============================================ */
 
 .controls-overlay {
@@ -13,36 +13,32 @@
 }
 
 .controls-header {
-  @apply flex justify-between items-center px-6 py-4 border-b border-gray-200;
+  @apply flex justify-between items-start px-6 py-4 border-b border-gray-200;
 }
 
 .controls-title {
-  @apply text-xl font-bold text-gray-800;
+  @apply text-xl font-bold text-gray-800 m-0;
+}
+
+.controls-username {
+  @apply text-sm text-gray-500 m-0 mt-1;
 }
 
 .controls-close-btn {
-  @apply text-gray-500 hover:text-gray-700 transition-colors;
+  @apply text-gray-500 hover:text-gray-700 transition-colors p-1;
 }
 
 .controls-body {
   @apply px-6 py-4;
 }
 
-/* Tank info section */
-.tank-info {
-  @apply mb-6 p-4 bg-blue-50 rounded-lg;
+/* Section styling */
+.controls-section {
+  @apply mb-6;
 }
 
-.tank-info-label {
-  @apply text-sm text-gray-600;
-}
-
-.tank-info-value {
-  @apply text-lg font-semibold text-gray-800;
-}
-
-.tank-info-count {
-  @apply text-2xl font-bold text-blue-600;
+.section-title {
+  @apply text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3;
 }
 
 /* Toggle button */
@@ -58,3 +54,54 @@
   @apply bg-gray-200 text-gray-700 hover:bg-gray-300;
 }
 
+/* Fish list - scoped to controls panel */
+.controls-panel .fish-list {
+  @apply space-y-2 max-h-80 overflow-y-auto;
+  /* Override standalone fish-list styles */
+  background: transparent;
+  box-shadow: none;
+  border-radius: 0;
+}
+
+.controls-panel .fish-list-item {
+  @apply flex items-center gap-3 py-2 px-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors;
+}
+
+.controls-panel .fish-color-dot {
+  @apply w-4 h-4 rounded-full border-2 border-gray-200 flex-shrink-0;
+}
+
+.controls-panel .fish-info {
+  @apply flex-1 min-w-0;
+}
+
+.controls-panel .fish-name {
+  @apply block text-gray-800 font-medium truncate;
+}
+
+.controls-panel .fish-rarity {
+  @apply text-xs font-semibold;
+}
+
+.controls-panel .fish-species {
+  @apply text-xs text-gray-400 flex-shrink-0;
+}
+
+.controls-panel .fish-delete-btn {
+  @apply text-red-400 hover:text-red-600 p-1 transition-colors;
+}
+
+/* Empty state */
+.controls-panel .empty-fish-list {
+  @apply text-center py-8;
+}
+
+.controls-panel .empty-fish-list p {
+  @apply text-gray-400 m-0;
+}
+
+.controls-panel .empty-fish-list .hint {
+  @apply text-sm mt-2 text-blue-400;
+}
+
+/* Logout button removed - now global component */

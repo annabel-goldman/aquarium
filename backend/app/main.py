@@ -1,7 +1,7 @@
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from app.database import connect_to_mongo, close_mongo_connection
-from app.routers import sessions, tanks
+from app.routers import sessions, game, fishing, shop
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
@@ -10,7 +10,7 @@ import os
 # Rate limiter setup
 limiter = Limiter(key_func=get_remote_address)
 
-app = FastAPI(title="Aquarium API V2")
+app = FastAPI(title="Cozy Aquarium Game API")
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
@@ -37,15 +37,16 @@ async def shutdown_event():
 
 # Include routers with /api prefix
 app.include_router(sessions.router, prefix="/api", tags=["sessions"])
-app.include_router(tanks.router, prefix="/api", tags=["tanks"])
+app.include_router(game.router, prefix="/api", tags=["game"])
+app.include_router(fishing.router, prefix="/api", tags=["fishing"])
+app.include_router(shop.router, prefix="/api", tags=["shop"])
 
 
 @app.get("/")
 async def root():
-    return {"status": "ok", "version": "2.0"}
+    return {"status": "ok", "version": "3.0", "name": "Cozy Aquarium Game"}
 
 
 @app.get("/health")
 async def health():
     return {"status": "healthy"}
-

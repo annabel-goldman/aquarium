@@ -1,0 +1,14 @@
+<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+  <!-- Fish flake - irregular oval shape -->
+  <ellipse cx="12" cy="12" rx="10" ry="6" fill="#FF8844" transform="rotate(-15, 12, 12)"/>
+  
+  <!-- Texture/shading -->
+  <ellipse cx="10" cy="11" rx="6" ry="3" fill="#FFAA66" transform="rotate(-15, 10, 11)"/>
+  
+  <!-- Darker edge detail -->
+  <ellipse cx="14" cy="13" rx="4" ry="2" fill="#E67733" transform="rotate(-15, 14, 13)"/>
+  
+  <!-- Small highlight -->
+  <ellipse cx="8" cy="10" rx="2" ry="1" fill="#FFCC88" transform="rotate(-20, 8, 10)"/>
+</svg>
+

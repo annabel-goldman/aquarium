@@ -1,0 +1,192 @@
+/* ============================================
+   SHOP PAGE
+   ============================================ */
+
+/* Shop page styles - used within GameLayout */
+.shop-page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100%;
+  padding: 0.5rem 1rem 1rem;
+  overflow: hidden;
+}
+
+/* Scrollable content area */
+.shop-scroll-content {
+  flex: 1;
+  width: 100%;
+  max-width: 600px;
+  overflow-y: auto;
+  padding-bottom: 2rem;
+  /* Hide scrollbar but keep functionality */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255,255,255,0.3) transparent;
+}
+
+.shop-scroll-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.shop-scroll-content::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.shop-scroll-content::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.3);
+  border-radius: 3px;
+}
+
+.shop-title {
+  margin: 0 0 1rem;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: white;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.shop-loading {
+  color: white;
+  font-size: 1rem;
+  opacity: 0.8;
+}
+
+/* Category sections */
+.shop-category {
+  width: 100%;
+  max-width: 600px;
+  margin-bottom: 1.5rem;
+}
+
+.category-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: white;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+  margin: 0 0 0.75rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Items grid */
+.shop-items {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 1rem;
+  width: 100%;
+  max-width: 600px;
+}
+
+.shop-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1.25rem 1rem;
+  border: none;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.9);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.shop-item:hover:not(.owned):not(.cant-afford) {
+  background: white;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+}
+
+.shop-item .item-image {
+  width: 80px;
+  height: 80px;
+  object-fit: contain;
+}
+
+.shop-item .item-details {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  text-align: center;
+}
+
+.shop-item .item-name {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #1F2937;
+}
+
+.shop-item .item-desc {
+  margin: 0;
+  font-size: 0.75rem;
+  color: #6B7280;
+}
+
+.shop-item .item-price {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  margin-top: 0.5rem;
+  padding: 0.35rem 0.75rem;
+  background: rgba(251, 191, 36, 0.2);
+  border-radius: 10px;
+}
+
+.shop-item .item-price img {
+  width: 18px;
+  height: 18px;
+}
+
+.shop-item .item-price span {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #92400E;
+}
+
+/* Owned state */
+.shop-item.owned {
+  opacity: 0.85;
+  cursor: default;
+}
+
+.shop-item .owned-badge {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #10B981;
+  background: rgba(16, 185, 129, 0.15);
+  padding: 0.3rem 0.6rem;
+  border-radius: 8px;
+}
+
+/* Catch-only items (can't be bought) */
+.shop-item.catch-only {
+  opacity: 0.7;
+  cursor: default;
+  background: rgba(255, 255, 255, 0.7);
+}
+
+.shop-item .catch-only-badge {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #3B82F6;
+  background: rgba(59, 130, 246, 0.15);
+  padding: 0.3rem 0.6rem;
+  border-radius: 8px;
+}
+
+/* Can't afford */
+.shop-item.cant-afford {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.shop-item.cant-afford .item-price span {
+  color: #EF4444;
+}
+
+/* Coming soon text */
+.shop-coming-soon {
+  margin-top: 2rem;
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.6);
+}
