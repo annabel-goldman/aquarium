@@ -168,7 +168,7 @@ export const ACCESSORY_CONFIG = {
     name: 'Cozy Beanie',
     slot: 'hat',
     sprite: '/sprites/accessories/beanie.svg',
-    offset: { x: 0, y: -6 },
+    offset: { x: 0, y: -12 },
     size: 0.35,
     rotation: 0,
   },
@@ -192,37 +192,51 @@ export const ACCESSORY_CONFIG = {
   },
   
   // ===== EFFECTS =====
-  // Effects are rendered differently - as particle systems or overlays
-  // These configs are placeholders for future implementation
+  // Effects render as overlays around the fish
   effect_bubbles: {
     id: 'effect_bubbles',
     name: 'Bubble Trail',
     slot: 'effect',
     sprite: '/sprites/accessories/effect-bubbles.svg',
+    offset: { x: -15, y: 0 },      // Behind the fish
+    size: 0.6,
+    rotation: 0,
   },
   effect_sparkle: {
     id: 'effect_sparkle',
     name: 'Sparkle Aura',
     slot: 'effect',
     sprite: '/sprites/accessories/effect-sparkle.svg',
+    offset: { x: 0, y: -8 },       // Above the fish
+    size: 0.7,
+    rotation: 0,
   },
   effect_hearts: {
     id: 'effect_hearts',
     name: 'Love Hearts',
     slot: 'effect',
     sprite: '/sprites/accessories/effect-hearts.svg',
+    offset: { x: 0, y: -10 },      // Floating above
+    size: 0.5,
+    rotation: 0,
   },
   effect_rainbow: {
     id: 'effect_rainbow',
     name: 'Rainbow Trail',
     slot: 'effect',
     sprite: '/sprites/accessories/effect-rainbow.svg',
+    offset: { x: -20, y: 0 },      // Trail behind
+    size: 0.8,
+    rotation: 0,
   },
   effect_lucky: {
     id: 'effect_lucky',
     name: 'Lucky Clover',
     slot: 'effect',
     sprite: '/sprites/accessories/effect-lucky.svg',
+    offset: { x: 5, y: -12 },      // Above and slightly forward
+    size: 0.35,
+    rotation: 15,
   },
 };
 

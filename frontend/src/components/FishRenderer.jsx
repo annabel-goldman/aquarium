@@ -84,8 +84,8 @@ export function calculateAccessoryPosition(species, accessoryId, facingRight = t
 function getEquippedAccessories(fish, facingRight = true) {
   const accessories = [];
   
-  // Check each slot
-  const slots = ['hat', 'glasses'];
+  // Check each slot (hat, effect - glasses removed)
+  const slots = ['hat', 'effect'];
   for (const slot of slots) {
     const accessoryId = fish.accessories?.[slot];
     if (accessoryId) {

@@ -113,35 +113,38 @@ export function ClosetPage({ username }) {
           <p>🐠 No fish yet!</p>
           <p>Catch some at the Lake</p>
         </div>
-      ) : ownedItems.length === 0 ? (
-        <div className="closet-empty">
-          <p>👒 No accessories yet!</p>
-          <p>Buy some in the Shop</p>
-        </div>
       ) : (
         <div className="closet-layout">
           {/* Left: Owned Accessories organized by slot */}
           <div className="accessories-sidebar">
-            {ACCESSORY_SLOTS.map(slot => {
-              const slotItems = itemsBySlot[slot.id];
-              if (slotItems.length === 0) return null;
-              
-              return (
-                <div key={slot.id} className="accessory-slot-section">
-                  <h3 className="slot-label">{slot.icon}</h3>
-                  <div className="accessories-grid">
-                    {slotItems.map(item => (
-                      <AccessoryTile
-                        key={item.id}
-                        item={item}
-                        equipped={isEquipped(item)}
-                        onToggle={() => handleToggleAccessory(item)}
-                      />
-                    ))}
+            {ownedItems.length === 0 ? (
+              <div className="sidebar-empty">
+                <p>👒</p>
+                <p>No items yet!</p>
+                <p className="sidebar-empty-hint">Visit the Shop</p>
+              </div>
+            ) : (
+              ACCESSORY_SLOTS.map(slot => {
+                const slotItems = itemsBySlot[slot.id];
+                if (slotItems.length === 0) return null;
+                
+                return (
+                  <div key={slot.id} className="accessory-slot-section">
+                    <h3 className="slot-label">{slot.icon}</h3>
+                    <div className="accessories-grid">
+                      {slotItems.map(item => (
+                        <AccessoryTile
+                          key={item.id}
+                          item={item}
+                          equipped={isEquipped(item)}
+                          onToggle={() => handleToggleAccessory(item)}
+                        />
+                      ))}
+                    </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })
+            )}
           </div>
           
           {/* Right: Fish selection and preview */}

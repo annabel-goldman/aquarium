@@ -57,6 +57,35 @@
   border-radius: 12px;
   padding: 0.5rem;
   overflow-y: auto;
+  min-width: 170px;
+}
+
+/* Empty state inside sidebar */
+.sidebar-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.8);
+  padding: 1rem 0.5rem;
+  flex: 1;
+}
+
+.sidebar-empty p {
+  margin: 0.2rem 0;
+  font-size: 0.85rem;
+}
+
+.sidebar-empty p:first-child {
+  font-size: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.sidebar-empty-hint {
+  font-size: 0.75rem !important;
+  opacity: 0.7;
+  margin-top: 0.5rem !important;
 }
 
 /* Accessory slot section (hats, effects) */
