@@ -160,7 +160,7 @@ export const ACCESSORY_CONFIG = {
     slot: 'hat',
     sprite: '/sprites/accessories/wizard-hat.svg',
     offset: { x: 0, y: -14 },
-    size: 0.5,
+    size: 0.42,
     rotation: 5,
   },
   hat_beanie: {

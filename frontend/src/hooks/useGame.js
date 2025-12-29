@@ -228,9 +228,20 @@ export function useGame() {
     setFish(prev => [...prev, newFish]);
   }, []);
 
-  // Update coins
+  // Update coins (local only)
   const updateCoins = useCallback((newCoins) => {
     setGameState(prev => ({ ...prev, coins: newCoins }));
+  }, []);
+
+  // Add coins (e.g., from collecting in the lake)
+  const addCoins = useCallback(async (amount) => {
+    try {
+      const result = await api.addCoins(amount);
+      setGameState(prev => ({ ...prev, coins: result.newTotal }));
+      return { success: true, newCoins: result.newTotal };
+    } catch (err) {
+      return { success: false, error: err.message };
+    }
   }, []);
 
   return {
@@ -255,6 +266,7 @@ export function useGame() {
     releaseFish,
     applyAccessory,
     addFish,
+    addCoins,
     updateCoins,
     refresh: fetchGameState,
   };
