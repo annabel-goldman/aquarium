@@ -7,6 +7,7 @@ import {
   hasAccessorySprite,
 } from '../config/constants';
 import { loadAndRecolorSVG } from '../utils/svgLoader';
+import { getIsLowPowerMode } from '../utils/performance';
 
 /**
  * FishRenderer - Single source of truth for fish appearance
@@ -115,6 +116,7 @@ function getEquippedAccessories(fish, facingRight = true) {
 export function FishInTank({ fish, currentFrame = 'tail-1' }) {
   const svgContent = useFishSVG(fish.species, fish.color, currentFrame);
   const sizeConfig = FISH_SIZE_CONFIG[fish.size] || FISH_SIZE_CONFIG.md;
+  const lowPowerMode = getIsLowPowerMode();
   
   if (!svgContent) return null;
   
@@ -177,7 +179,7 @@ export function FishInTank({ fish, currentFrame = 'tail-1' }) {
         // Default particle trail for other effects
         // Create flowing trail particles that continuously emerge from tail
         // Each particle flows backward, shrinks, and fades in a loop
-        const trailParticles = [0, 1, 2, 3, 4, 5].map((index) => {
+        const trailParticles = Array.from({ length: lowPowerMode ? 3 : 6 }, (_, index) => index).map((index) => {
           const delay = index * 0.15; // Stagger so particles appear in sequence
           const particleSize = accessorySize * sizeConfig.scale * 0.7; // Smaller particles
           
@@ -275,6 +277,7 @@ export function FishInTank({ fish, currentFrame = 'tail-1' }) {
  */
 export function FishInPreview({ fish, size = 160 }) {
   const svgContent = useFishSVG(fish.species, fish.color, 'tail-1');
+  const lowPowerMode = getIsLowPowerMode();
   
   if (!svgContent) {
     return <div className="fish-loading" style={{ width: size, height: size }} />;
@@ -353,7 +356,7 @@ export function FishInPreview({ fish, size = 160 }) {
         // Default particle trail for other effects
         // Create flowing trail particles that continuously emerge from tail
         // Each particle flows backward, shrinks, and fades in a loop
-        const trailParticles = [0, 1, 2, 3, 4, 5].map((index) => {
+        const trailParticles = Array.from({ length: lowPowerMode ? 3 : 6 }, (_, index) => index).map((index) => {
           const delay = index * 0.15; // Stagger so particles appear in sequence
           
           const startX = (32 + acc.x) * scaleFactor - accessorySize / 2;

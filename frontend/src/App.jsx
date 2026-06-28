@@ -1,72 +1,80 @@
+import { Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { useSession } from './hooks/useSession';
-import { LoginForm } from './components/LoginForm';
-import { TankPage } from './pages/TankPage';
-import { LakePage } from './pages/LakePage';
-import { ClosetPage } from './pages/ClosetPage';
-import { ShopPage } from './pages/ShopPage';
+
+const LoginForm = lazy(() => import('./components/LoginForm').then(module => ({ default: module.LoginForm })));
+const TankPage = lazy(() => import('./pages/TankPage').then(module => ({ default: module.TankPage })));
+const LakePage = lazy(() => import('./pages/LakePage').then(module => ({ default: module.LakePage })));
+const ClosetPage = lazy(() => import('./pages/ClosetPage').then(module => ({ default: module.ClosetPage })));
+const ShopPage = lazy(() => import('./pages/ShopPage').then(module => ({ default: module.ShopPage })));
+
+function LoadingScreen({ text = 'Loading...' }) {
+  return (
+    <div className="fullscreen-center bg-ocean">
+      <div className="text-xl text-white font-medium">{text}</div>
+    </div>
+  );
+}
 
 function App() {
   const { username, loading, authenticate, isAuthenticated } = useSession();
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-blue-400 via-blue-500 to-blue-700">
-        <div className="text-xl text-white font-medium">Loading...</div>
-      </div>
-    );
+    return <LoadingScreen />;
   }
 
   return (
     <Router>
-      <Routes>
-        {/* Login */}
-        <Route
-          path="/login"
-          element={
-            isAuthenticated ? (
-              <Navigate to="/tank" replace />
-            ) : (
-              <LoginForm onAuthenticate={authenticate} />
-            )
-          }
-        />
-        
-        {/* Main Tank (Home) - works for both auth and unauth */}
-        <Route
-          path="/tank"
-          element={<TankPage username={username} isAuthenticated={isAuthenticated} />}
-        />
-        
-        {/* Fishing Lake - works for both auth and unauth */}
-        <Route
-          path="/lake"
-          element={<LakePage username={username} isAuthenticated={isAuthenticated} />}
-        />
-        
-        {/* Closet - works for both auth and unauth */}
-        <Route
-          path="/closet"
-          element={<ClosetPage username={username} isAuthenticated={isAuthenticated} />}
-        />
-        
-        {/* Shop - works for both auth and unauth */}
-        <Route
-          path="/shop"
-          element={<ShopPage username={username} isAuthenticated={isAuthenticated} />}
-        />
-        
-        {/* Default route - redirect to tank */}
-        <Route
-          path="/"
-          element={<Navigate to="/tank" replace />}
-        />
-        
-        {/* Legacy redirects */}
-        <Route path="/guest" element={<Navigate to="/tank" replace />} />
-        <Route path="/aquarium" element={<Navigate to="/tank" replace />} />
-        <Route path="/tanks/:tankId" element={<Navigate to="/tank" replace />} />
-      </Routes>
+      <Suspense fallback={<LoadingScreen />}>
+        <Routes>
+          {/* Login */}
+          <Route
+            path="/login"
+            element={
+              isAuthenticated ? (
+                <Navigate to="/tank" replace />
+              ) : (
+                <LoginForm onAuthenticate={authenticate} />
+              )
+            }
+          />
+          
+          {/* Main Tank (Home) - works for both auth and unauth */}
+          <Route
+            path="/tank"
+            element={<TankPage username={username} isAuthenticated={isAuthenticated} />}
+          />
+          
+          {/* Fishing Lake - works for both auth and unauth */}
+          <Route
+            path="/lake"
+            element={<LakePage username={username} isAuthenticated={isAuthenticated} />}
+          />
+          
+          {/* Closet - works for both auth and unauth */}
+          <Route
+            path="/closet"
+            element={<ClosetPage username={username} isAuthenticated={isAuthenticated} />}
+          />
+          
+          {/* Shop - works for both auth and unauth */}
+          <Route
+            path="/shop"
+            element={<ShopPage username={username} isAuthenticated={isAuthenticated} />}
+          />
+          
+          {/* Default route - redirect to tank */}
+          <Route
+            path="/"
+            element={<Navigate to="/tank" replace />}
+          />
+          
+          {/* Legacy redirects */}
+          <Route path="/guest" element={<Navigate to="/tank" replace />} />
+          <Route path="/aquarium" element={<Navigate to="/tank" replace />} />
+          <Route path="/tanks/:tankId" element={<Navigate to="/tank" replace />} />
+        </Routes>
+      </Suspense>
     </Router>
   );
 }

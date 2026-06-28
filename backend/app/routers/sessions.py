@@ -1,7 +1,8 @@
 from fastapi import APIRouter, Response, Depends, HTTPException, Request
 from app.models import SessionCreate, SessionResponse, now_utc, hash_password, verify_password
 from app.auth import set_session_cookie, clear_session_cookie, get_current_username
-from app.database import get_database
+from app.database import get_user, save_user
+from app.game_config import STARTING_COINS, STARTING_HUNGER, STARTING_CLEANLINESS, STARTING_MAX_FISH
 from slowapi import Limiter
 from slowapi.util import get_remote_address
 import uuid
@@ -22,19 +23,15 @@ async def create_session(request: Request, session_data: SessionCreate, response
     username = session_data.username
     password = session_data.password
     
-    db = get_database()
-    users_collection = db.users
-    
-    user = await users_collection.find_one({"username": username})
+    user = await get_user(username)
     
     if user:
         # Check if this is a legacy user (created before passwords were added)
         if "password_hash" not in user:
             # Migrate legacy user: set their password
-            await users_collection.update_one(
-                {"username": username},
-                {"$set": {"password_hash": hash_password(password)}}
-            )
+            user["password_hash"] = hash_password(password)
+            user["updatedAt"] = now_utc()
+            await save_user(user)
             set_session_cookie(response, username)
             return SessionResponse(username=username, is_new_user=False)
         
@@ -46,25 +43,29 @@ async def create_session(request: Request, session_data: SessionCreate, response
         set_session_cookie(response, username)
         return SessionResponse(username=username, is_new_user=False)
     
-    # User doesn't exist - create new account
-    default_tank = {
-        "id": str(uuid.uuid4()),
-        "name": "My First Tank",
-        "theme": {"background": "blue-gradient"},
-        "fish": [],
-        "createdAt": now_utc(),
-        "updatedAt": now_utc()
-    }
+    now = now_utc()
     
     new_user = {
         "username": username,
         "password_hash": hash_password(password),
-        "tanks": [default_tank],
-        "createdAt": now_utc(),
-        "updatedAt": now_utc()
+        "gameState": {
+            "coins": STARTING_COINS,
+            "maxFish": STARTING_MAX_FISH,
+            "lastActiveAt": now,
+        },
+        "tank": {
+            "hunger": STARTING_HUNGER,
+            "cleanliness": STARTING_CLEANLINESS,
+            "poopPositions": [],
+            "lastPoopTime": now,
+        },
+        "fish": [],
+        "ownedAccessories": [],
+        "createdAt": now,
+        "updatedAt": now,
     }
     
-    await users_collection.insert_one(new_user)
+    await save_user(new_user)
     
     set_session_cookie(response, username)
     return SessionResponse(username=username, is_new_user=True)
@@ -93,10 +94,7 @@ async def migrate_local_game_state(
     Migrate local game state from localStorage to authenticated account.
     Merges fish, coins, owned accessories from local storage into user's account.
     """
-    db = get_database()
-    users_collection = db.users
-    
-    user = await users_collection.find_one({"username": username})
+    user = await get_user(username)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     
@@ -110,7 +108,7 @@ async def migrate_local_game_state(
     current_fish = user.get("fish", [])
     current_game_state = user.get("gameState", {})
     current_coins = current_game_state.get("coins", 0)
-    current_accessories = current_game_state.get("ownedAccessories", [])
+    current_accessories = user.get("ownedAccessories", current_game_state.get("ownedAccessories", []))
     
     # Merge fish (add local fish to user's tank if space available)
     max_fish = current_game_state.get("maxFish", 10)
@@ -140,18 +138,11 @@ async def migrate_local_game_state(
     # Merge accessories (union of both sets)
     merged_accessories = list(set(current_accessories + local_accessories))
     
-    # Update database
-    await users_collection.update_one(
-        {"username": username},
-        {
-            "$push": {"fish": {"$each": fish_to_add}},
-            "$set": {
-                "gameState.coins": new_coins,
-                "gameState.ownedAccessories": merged_accessories,
-                "updatedAt": now_utc()
-            }
-        }
-    )
+    user["fish"] = current_fish + fish_to_add
+    user["gameState"] = {**current_game_state, "coins": new_coins}
+    user["ownedAccessories"] = merged_accessories
+    user["updatedAt"] = now_utc()
+    await save_user(user)
     
     return {
         "success": True,
@@ -162,4 +153,3 @@ async def migrate_local_game_state(
         "totalCoins": new_coins,
         "accessoriesAdded": len(merged_accessories) - len(current_accessories),
     }
-

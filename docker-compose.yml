@@ -1,18 +1,4 @@
-version: '3.8'
-
 services:
-  # MongoDB database
-  mongodb:
-    image: mongo:7.0
-    container_name: aquarium-v2-mongodb
-    ports:
-      - "27017:27017"
-    volumes:
-      - mongodb_data:/data/db
-    networks:
-      - aquarium-network
-    command: mongod --quiet
-
   # FastAPI backend
   backend:
     build:
@@ -23,12 +9,12 @@ services:
       - "8000:8000"
     volumes:
       - ./backend/app:/app/app
+      - sqlite_data:/data
     environment:
-      - MONGO_URI=mongodb://mongodb:27017/aquarium_v2
+      - SQLITE_PATH=/data/aquarium.sqlite
       - JWT_SECRET=dev-secret-change-in-production
+      - COOKIE_SECURE=false
       - ALLOWED_ORIGIN=http://localhost:5173
-    depends_on:
-      - mongodb
     networks:
       - aquarium-network
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
@@ -58,6 +44,5 @@ networks:
     driver: bridge
 
 volumes:
-  mongodb_data:
+  sqlite_data:
     driver: local
-

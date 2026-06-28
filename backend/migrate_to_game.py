@@ -1,20 +1,26 @@
 """
-Migration Script: Multi-Tank to Cozy Aquarium Game
+One-time migration: MongoDB -> SQLite game store.
 
-This script migrates existing users from the multi-tank format
-to the new single-tank game format.
+Run before switching production traffic to the single-container SQLite runtime:
 
-Run with: python migrate_to_game.py
+    cd backend
+    SQLITE_PATH=/data/aquarium.sqlite \
+    MONGO_URI='mongodb://user:pass@host:27017/aquarium_v2?authSource=admin' \
+    python migrate_to_game.py
+
+This script intentionally keeps pymongo as an optional migration dependency so
+the lean runtime does not need Mongo libraries installed.
 """
 
 import asyncio
-from motor.motor_asyncio import AsyncIOMotorClient
 from datetime import datetime, timezone
 import os
+import sys
+
+from app.database import connect_to_mongo, close_mongo_connection, save_user, sqlite_path
+
 
 MONGO_URI = os.getenv("MONGO_URI", "mongodb://localhost:27017/aquarium")
-
-# Game starting values
 STARTING_MAX_FISH = 10
 STARTING_COINS = 100
 STARTING_HUNGER = 100.0
@@ -25,202 +31,130 @@ def now_utc():
     return datetime.now(timezone.utc)
 
 
-async def migrate_user(user: dict) -> dict:
-    """Convert a legacy multi-tank user to new game format"""
-    
-    # Check if already migrated
-    if "gameState" in user:
-        print(f"  User {user['username']} already migrated, skipping")
-        return None
-    
-    # Gather all fish from all tanks
+def normalize_fish(fish: dict) -> dict:
+    return {
+        "id": fish.get("id"),
+        "species": fish.get("species", "Clownfish"),
+        "name": fish.get("name", fish.get("species", "Fish")),
+        "color": fish.get("color", "#ff8844"),
+        "size": fish.get("size", "md"),
+        "rarity": fish.get("rarity", "common"),
+        "accessories": fish.get("accessories", {"hat": None, "glasses": None, "effect": None}),
+        "createdAt": fish.get("createdAt", now_utc()),
+    }
+
+
+def migrate_legacy_user(user: dict) -> dict:
     all_fish = []
     for tank in user.get("tanks", []):
-        for fish in tank.get("fish", []):
-            # Add new fields to fish
-            migrated_fish = {
-                "id": fish["id"],
-                "species": fish["species"],
-                "name": fish["name"],
-                "color": fish["color"],
-                "size": fish["size"],
-                "rarity": "common",  # All existing fish are common
-                "accessories": {"hat": None, "glasses": None, "effect": None},
-                "createdAt": fish["createdAt"]
-            }
-            all_fish.append(migrated_fish)
-    
-    # Keep up to starting capacity
-    fish_to_keep = all_fish[:STARTING_MAX_FISH]
-    
-    # Give bonus coins for existing fish
-    bonus_coins = len(all_fish) * 10
-    
+        all_fish.extend(normalize_fish(fish) for fish in tank.get("fish", []))
+
     now = now_utc()
-    
-    # Build the update document
-    update = {
-        "$set": {
-            "gameState": {
-                "coins": STARTING_COINS + bonus_coins,
-                "maxFish": STARTING_MAX_FISH,
-                "lastActiveAt": now
-            },
-            "tank": {
-                "hunger": STARTING_HUNGER,
-                "cleanliness": STARTING_CLEANLINESS,
-                "poopPositions": [],
-                "lastPoopTime": now
-            },
-            "fish": fish_to_keep,
-            "ownedAccessories": [],
-            "updatedAt": now
+    fish_to_keep = all_fish[:STARTING_MAX_FISH]
+    bonus_coins = len(all_fish) * 10
+
+    return {
+        "username": user["username"],
+        "password_hash": user.get("password_hash"),
+        "gameState": {
+            "coins": STARTING_COINS + bonus_coins,
+            "maxFish": STARTING_MAX_FISH,
+            "lastActiveAt": now,
         },
-        "$unset": {
-            "tanks": ""  # Remove old tanks array
-        }
+        "tank": {
+            "hunger": STARTING_HUNGER,
+            "cleanliness": STARTING_CLEANLINESS,
+            "poopPositions": [],
+            "lastPoopTime": now,
+        },
+        "fish": fish_to_keep,
+        "ownedAccessories": [],
+        "createdAt": user.get("createdAt", now),
+        "updatedAt": now,
     }
-    
-    return update
+
+
+def migrate_game_user(user: dict) -> dict:
+    now = now_utc()
+    game_state = user.get("gameState", {})
+    owned = user.get("ownedAccessories", game_state.get("ownedAccessories", []))
+
+    return {
+        "username": user["username"],
+        "password_hash": user.get("password_hash"),
+        "gameState": {
+            "coins": game_state.get("coins", STARTING_COINS),
+            "maxFish": game_state.get("maxFish", STARTING_MAX_FISH),
+            "lastActiveAt": game_state.get("lastActiveAt", now),
+        },
+        "tank": user.get("tank", {
+            "hunger": STARTING_HUNGER,
+            "cleanliness": STARTING_CLEANLINESS,
+            "poopPositions": [],
+            "lastPoopTime": now,
+        }),
+        "fish": [normalize_fish(fish) for fish in user.get("fish", [])],
+        "ownedAccessories": owned,
+        "createdAt": user.get("createdAt", now),
+        "updatedAt": user.get("updatedAt", now),
+    }
 
 
 async def run_migration():
-    """Run the migration on all users"""
+    try:
+        from pymongo import MongoClient
+    except ImportError:
+        print("Missing optional dependency: pymongo")
+        print("Install only for migration with: python -m pip install pymongo")
+        sys.exit(1)
+
     print("=" * 60)
-    print("Cozy Aquarium Game Migration")
+    print("Cozy Aquarium MongoDB -> SQLite Migration")
     print("=" * 60)
-    print(f"\nConnecting to MongoDB: {MONGO_URI}")
-    
-    client = AsyncIOMotorClient(MONGO_URI)
+    print(f"MongoDB: {MONGO_URI}")
+    print(f"SQLite: {sqlite_path()}")
+
+    await connect_to_mongo()
+    client = MongoClient(MONGO_URI)
     db = client.get_database()
-    users_collection = db.users
-    
-    # Count users
-    total_users = await users_collection.count_documents({})
-    legacy_users = await users_collection.count_documents({"tanks": {"$exists": True}})
-    already_migrated = await users_collection.count_documents({"gameState": {"$exists": True}})
-    
-    print(f"\nTotal users: {total_users}")
-    print(f"Legacy users (with tanks): {legacy_users}")
-    print(f"Already migrated: {already_migrated}")
-    print(f"Need migration: {legacy_users}")
-    
-    if legacy_users == 0:
-        print("\nNo users need migration. Done!")
+    users = db.users
+
+    total = users.count_documents({})
+    print(f"\nUsers to migrate: {total}")
+    if total == 0:
+        print("No users found. Done.")
         client.close()
+        await close_mongo_connection()
         return
-    
-    # Confirm migration
-    confirm = input(f"\nMigrate {legacy_users} users? (yes/no): ").strip().lower()
+
+    confirm = input("\nWrite these users into SQLite? (yes/no): ").strip().lower()
     if confirm != "yes":
         print("Migration cancelled.")
         client.close()
+        await close_mongo_connection()
         return
-    
-    # Process each legacy user
-    cursor = users_collection.find({"tanks": {"$exists": True}})
+
     migrated = 0
     errors = 0
-    
-    async for user in cursor:
-        username = user["username"]
-        print(f"\nMigrating: {username}")
-        
+    for user in users.find({}):
         try:
-            update = await migrate_user(user)
-            if update:
-                await users_collection.update_one(
-                    {"username": username},
-                    update
-                )
-                
-                # Count fish
-                fish_count = len(update["$set"]["fish"])
-                bonus = len(user.get("tanks", [])) * 10
-                print(f"  ✓ Migrated with {fish_count} fish, {STARTING_COINS + bonus} coins")
-                migrated += 1
-        except Exception as e:
-            print(f"  ✗ Error: {e}")
+            if "gameState" in user:
+                migrated_user = migrate_game_user(user)
+            else:
+                migrated_user = migrate_legacy_user(user)
+            await save_user(migrated_user)
+            migrated += 1
+            print(f"  migrated {migrated_user['username']}")
+        except Exception as exc:
             errors += 1
-    
-    print("\n" + "=" * 60)
-    print("Migration Complete")
-    print("=" * 60)
+            print(f"  error migrating {user.get('username', '<unknown>')}: {exc}")
+
+    client.close()
+    await close_mongo_connection()
+    print("\nMigration complete.")
     print(f"Migrated: {migrated}")
     print(f"Errors: {errors}")
-    
-    client.close()
-
-
-async def rollback_migration():
-    """Rollback migration (for testing) - NOT RECOMMENDED FOR PRODUCTION"""
-    print("WARNING: This will undo the game migration!")
-    confirm = input("Are you sure? Type 'ROLLBACK' to confirm: ").strip()
-    
-    if confirm != "ROLLBACK":
-        print("Rollback cancelled.")
-        return
-    
-    client = AsyncIOMotorClient(MONGO_URI)
-    db = client.get_database()
-    users_collection = db.users
-    
-    # Find migrated users
-    cursor = users_collection.find({"gameState": {"$exists": True}})
-    
-    async for user in cursor:
-        username = user["username"]
-        print(f"Rolling back: {username}")
-        
-        # Recreate a basic tank from fish
-        fish = user.get("fish", [])
-        now = now_utc()
-        
-        # Remove new fields and keep minimal data
-        legacy_fish = []
-        for f in fish:
-            legacy_fish.append({
-                "id": f["id"],
-                "species": f["species"],
-                "name": f["name"],
-                "color": f["color"],
-                "size": f["size"],
-                "createdAt": f["createdAt"]
-            })
-        
-        tank = {
-            "id": "migrated-tank",
-            "name": "My Tank",
-            "theme": {"background": "blue-gradient"},
-            "fish": legacy_fish,
-            "createdAt": now,
-            "updatedAt": now
-        }
-        
-        await users_collection.update_one(
-            {"username": username},
-            {
-                "$set": {
-                    "tanks": [tank],
-                    "updatedAt": now
-                },
-                "$unset": {
-                    "gameState": "",
-                    "tank": "",
-                    "fish": "",
-                    "ownedAccessories": ""
-                }
-            }
-        )
-    
-    print("Rollback complete.")
-    client.close()
 
 
 if __name__ == "__main__":
-    import sys
-    
-    if len(sys.argv) > 1 and sys.argv[1] == "--rollback":
-        asyncio.run(rollback_migration())
-    else:
-        asyncio.run(run_migration())
+    asyncio.run(run_migration())

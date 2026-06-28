@@ -225,9 +225,7 @@ function CatchModal({ result, tankFish, tankFull, onKeep, onRelease, onSwap, onD
 export function LakePage({ username, isAuthenticated }) {
   const game = useUnifiedGame(isAuthenticated);
   
-  // Only use local fishing when not authenticated
-  // eslint-disable-next-line react-hooks/rules-of-hooks
-  const localFishing = !isAuthenticated ? useLocalFishing() : null;
+  const localFishing = useLocalFishing();
   
   // Store localFishing in a ref to avoid dependency issues
   const localFishingRef = useRef(localFishing);
@@ -240,6 +238,7 @@ export function LakePage({ username, isAuthenticated }) {
   const [catching, setCatching] = useState(false);
   const [catchResult, setCatchResult] = useState(null);
   const [ripple, setRipple] = useState(null);
+  const [isPageVisible, setIsPageVisible] = useState(() => document.visibilityState === 'visible');
   
   const spawnTimerRef = useRef(null);
   const coinTimerRef = useRef(null);
@@ -248,16 +247,23 @@ export function LakePage({ username, isAuthenticated }) {
   const coins = game.gameState?.coins || 0;
   const tankFish = game.fish || [];
   const maxFish = game.gameState?.maxFish || 10;
+
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      setIsPageVisible(document.visibilityState === 'visible');
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, []);
   
   // Spawn fish
   const refreshSpawns = useCallback(async () => {
-    if (catching) return;
+    if (catching || !isPageVisible) return;
     
     if (isAuthenticated) {
       // Use backend API
       try {
         const data = await api.getFishingSpawns();
-        console.log('[AUTH] Spawns from backend:', data.spawns);
         setSpawns(data.spawns || []);
       } catch (err) {
         console.error('Spawn error:', err);
@@ -265,22 +271,24 @@ export function LakePage({ username, isAuthenticated }) {
     } else if (localFishingRef.current) {
       // Use local fishing
       const newSpawns = localFishingRef.current.generateSpawns();
-      console.log('[UNAUTH] Generated spawns:', newSpawns);
       setSpawns(newSpawns);
-    } else {
-      console.warn('[UNAUTH] localFishing is null!');
     }
-  }, [catching, isAuthenticated]); // Removed localFishing from deps
+  }, [catching, isAuthenticated, isPageVisible]);
   
   useEffect(() => {
+    if (!isPageVisible) return;
     refreshSpawns();
     spawnTimerRef.current = setInterval(refreshSpawns, FISHING_CONFIG.spawnRefreshMs);
     return () => clearInterval(spawnTimerRef.current);
-  }, [refreshSpawns]);
+  }, [refreshSpawns, isPageVisible]);
   
   // Spawn floating coins periodically (config-driven)
   useEffect(() => {
+    if (!isPageVisible) return;
+    const initialTimers = [];
+
     const spawnCoin = () => {
+      if (document.visibilityState !== 'visible') return;
       const newCoin = {
         id: coinIdRef.current++,
         x: 0.1 + Math.random() * 0.8,
@@ -301,7 +309,7 @@ export function LakePage({ username, isAuthenticated }) {
     
     // Spawn initial coins
     for (let i = 0; i < COIN_CONFIG.initialCoins; i++) {
-      setTimeout(spawnCoin, i * 500);
+      initialTimers.push(setTimeout(spawnCoin, i * 500));
     }
     
     // Periodic spawn attempts
@@ -311,8 +319,11 @@ export function LakePage({ username, isAuthenticated }) {
       }
     }, COIN_CONFIG.spawnIntervalMs);
     
-    return () => clearInterval(coinTimerRef.current);
-  }, []);
+    return () => {
+      initialTimers.forEach(clearTimeout);
+      clearInterval(coinTimerRef.current);
+    };
+  }, [isPageVisible]);
   
   // Collect a coin
   const handleCollectCoin = async (coin) => {
@@ -447,7 +458,6 @@ export function LakePage({ username, isAuthenticated }) {
       <WaterBackground>
         {/* Fish swimming area - paused when modal is shown */}
         <div className={`lake-fish-area ${catchResult ? 'paused' : ''}`}>
-          {console.log('[RENDER] Spawns to render:', spawns.length, spawns)}
           {spawns.map(spawn => (
             <FishSilhouette
               key={spawn.id}

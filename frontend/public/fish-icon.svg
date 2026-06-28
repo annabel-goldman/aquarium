@@ -1,0 +1,20 @@
+<svg viewBox="0 0 64 64" width="64" height="64" xmlns="http://www.w3.org/2000/svg">
+  <!-- Clownfish favicon -->
+  <!-- Rounded body -->
+  <path d="M20 32 C30 22 45 22 55 32 C45 42 30 42 20 32" fill="#FF6B35" stroke="#222" stroke-width="1.5"/>
+  <!-- White stripes -->
+  <path d="M26 24 L26 40 L30 40 L30 24 Z" fill="#FFFFFF" stroke="#222" stroke-width="1"/>
+  <path d="M38 24 L38 40 L42 40 L42 24 Z" fill="#FFFFFF" stroke="#222" stroke-width="1"/>
+  <!-- Top fin -->
+  <path d="M32 23 L37 18 L42 23 Z" fill="#FF8C5A" stroke="#222" stroke-width="1"/>
+  <!-- Bottom fin -->
+  <path d="M32 41 L37 46 L42 41 Z" fill="#E85A20" stroke="#222" stroke-width="1"/>
+  <!-- Tail -->
+  <path d="M20 32 C14 27 6 25 2 28 C6 32 6 32 2 36 C6 39 14 37 20 32" fill="#FF6B35" stroke="#222" stroke-width="1.5"/>
+  <!-- Eye -->
+  <circle cx="50" cy="32" r="4" fill="#FFFFFF" stroke="#222" stroke-width="1"/>
+  <circle cx="51" cy="32" r="2" fill="#222"/>
+  <!-- Eye shine -->
+  <circle cx="52" cy="31" r="0.8" fill="#FFFFFF"/>
+</svg>
+

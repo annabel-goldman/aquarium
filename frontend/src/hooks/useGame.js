@@ -44,6 +44,10 @@ export function useGame() {
   // Game tick - update hunger, poop
   // Debounced to prevent excessive server calls
   const gameTick = useCallback(async () => {
+    if (document.visibilityState !== 'visible') {
+      return;
+    }
+
     // Debounce: prevent ticks more frequent than tickDebounceMs
     const now = Date.now();
     const timeSinceLastTick = now - lastTickRef.current;
@@ -68,7 +72,7 @@ export function useGame() {
         ...prev,
         hunger: data.hunger,
         cleanliness: data.cleanliness,
-        poopPositions: prev?.poopPositions || [], // Keep poop positions until explicit refresh
+        poopPositions: data.poopPositions || prev?.poopPositions || [],
       }));
       
       setGameState(prev => ({

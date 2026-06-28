@@ -4,7 +4,7 @@ Fishing Router - Lake minigame for catching fish
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from app.auth import get_current_username
-from app.database import get_database
+from app.database import get_user, save_user
 from app.models import FishResponse, now_utc
 from app.game_config import (
     RARITY_WEIGHTS, RARITY_COIN_VALUES, RARITY_SPEED,
@@ -91,10 +91,7 @@ async def attempt_catch(
     Species, size, and rarity can be passed from the spawn data.
     Returns what was caught (fish, junk, or rare cosmetic).
     """
-    db = get_database()
-    users = db.users
-    
-    user = await users.find_one({"username": username})
+    user = await get_user(username)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     
@@ -109,13 +106,9 @@ async def attempt_catch(
         if available:
             cosmetic_id = random.choice(available)
             # Add to owned accessories
-            await users.update_one(
-                {"username": username},
-                {
-                    "$push": {"ownedAccessories": cosmetic_id},
-                    "$set": {"updatedAt": now_utc()}
-                }
-            )
+            user["ownedAccessories"] = owned + [cosmetic_id]
+            user["updatedAt"] = now_utc()
+            await save_user(user)
             
             return {
                 "success": True,
@@ -127,13 +120,9 @@ async def attempt_catch(
             # Already have all catchable cosmetics, give coins instead
             bonus_coins = BONUS_COINS_ALL_COSMETICS
             current_coins = user.get("gameState", {}).get("coins", 0)
-            await users.update_one(
-                {"username": username},
-                {"$set": {
-                    "gameState.coins": current_coins + bonus_coins,
-                    "updatedAt": now_utc()
-                }}
-            )
+            user["gameState"]["coins"] = current_coins + bonus_coins
+            user["updatedAt"] = now_utc()
+            await save_user(user)
             return {
                 "success": True,
                 "resultType": "bonus_coins",
@@ -195,10 +184,7 @@ async def attempt_catch(
 @router.post("/fishing/keep")
 async def keep_fish(fish_data: dict, username: str = Depends(get_current_username)):
     """Add a caught fish to the tank"""
-    db = get_database()
-    users = db.users
-    
-    user = await users.find_one({"username": username})
+    user = await get_user(username)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     
@@ -221,13 +207,9 @@ async def keep_fish(fish_data: dict, username: str = Depends(get_current_usernam
         "createdAt": now_utc()
     }
     
-    await users.update_one(
-        {"username": username},
-        {
-            "$push": {"fish": new_fish},
-            "$set": {"updatedAt": now_utc()}
-        }
-    )
+    user["fish"] = current_fish + [new_fish]
+    user["updatedAt"] = now_utc()
+    await save_user(user)
     
     return {
         "success": True,
@@ -239,10 +221,7 @@ async def keep_fish(fish_data: dict, username: str = Depends(get_current_usernam
 @router.post("/fishing/release")
 async def release_for_coins(fish_data: dict, username: str = Depends(get_current_username)):
     """Release a caught fish for coins"""
-    db = get_database()
-    users = db.users
-    
-    user = await users.find_one({"username": username})
+    user = await get_user(username)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     
@@ -252,13 +231,9 @@ async def release_for_coins(fish_data: dict, username: str = Depends(get_current
     current_coins = user.get("gameState", {}).get("coins", 0)
     new_coins = current_coins + coins_earned
     
-    await users.update_one(
-        {"username": username},
-        {"$set": {
-            "gameState.coins": new_coins,
-            "updatedAt": now_utc()
-        }}
-    )
+    user["gameState"]["coins"] = new_coins
+    user["updatedAt"] = now_utc()
+    await save_user(user)
     
     return {
         "success": True,
@@ -275,10 +250,7 @@ async def swap_fish(
     username: str = Depends(get_current_username)
 ):
     """Swap a caught fish with one in the tank"""
-    db = get_database()
-    users = db.users
-    
-    user = await users.find_one({"username": username})
+    user = await get_user(username)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     
@@ -315,14 +287,10 @@ async def swap_fish(
     }
     remaining_fish.append(new_fish)
     
-    await users.update_one(
-        {"username": username},
-        {"$set": {
-            "fish": remaining_fish,
-            "gameState.coins": new_coins,
-            "updatedAt": now_utc()
-        }}
-    )
+    user["fish"] = remaining_fish
+    user["gameState"]["coins"] = new_coins
+    user["updatedAt"] = now_utc()
+    await save_user(user)
     
     return {
         "success": True,
@@ -332,4 +300,3 @@ async def swap_fish(
         "newCoins": new_coins,
         "message": f"Swapped {released_fish['name']} for {new_fish['name']}! +{coins_earned} coins"
     }
-

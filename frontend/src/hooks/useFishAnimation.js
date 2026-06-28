@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { FISH_SIZE_CONFIG, TANK_BOUNDS, SPRITE_FRAMES } from '../config/constants';
+import { getIsLowPowerMode } from '../utils/performance';
 
 /**
  * Fish animation hook with natural food-seeking behavior
@@ -11,6 +12,7 @@ import { FISH_SIZE_CONFIG, TANK_BOUNDS, SPRITE_FRAMES } from '../config/constant
  */
 export function useFishAnimation(fishData = [], foodParticles = [], onEatFood = null) {
   const [animatedFish, setAnimatedFish] = useState([]);
+  const [isVisible, setIsVisible] = useState(() => document.visibilityState === 'visible');
   const stateRef = useRef(new Map());
   const frameRef = useRef(null);
   const fishDataRef = useRef(fishData);
@@ -27,6 +29,14 @@ export function useFishAnimation(fishData = [], foodParticles = [], onEatFood = 
     fishData.map(f => f.id).sort().join(','),
     [fishData]
   );
+
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      setIsVisible(document.visibilityState === 'visible');
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, []);
 
   // Initialize fish state
   useEffect(() => {
@@ -68,15 +78,23 @@ export function useFishAnimation(fishData = [], foodParticles = [], onEatFood = 
   useEffect(() => {
     const currentFish = fishDataRef.current;
     
-    if (currentFish.length === 0) {
+    if (!isVisible || currentFish.length === 0) {
       setAnimatedFish([]);
       return;
     }
 
     let lastTime = performance.now();
+    let lastRenderTime = 0;
+    const lowPowerMode = getIsLowPowerMode();
     const eatenThisFrame = new Set();
 
     function animate(currentTime) {
+      if (lowPowerMode && currentTime - lastRenderTime < 33) {
+        frameRef.current = requestAnimationFrame(animate);
+        return;
+      }
+      lastRenderTime = currentTime;
+
       const deltaTime = Math.min((currentTime - lastTime) / 16.67, 3);
       lastTime = currentTime;
 
@@ -231,7 +249,7 @@ export function useFishAnimation(fishData = [], foodParticles = [], onEatFood = 
         cancelAnimationFrame(frameRef.current);
       }
     };
-  }, [fishKey]);
+  }, [fishKey, isVisible]);
 
   return animatedFish;
 }

@@ -9,6 +9,10 @@ ALGORITHM = "HS256"
 COOKIE_NAME = "sid"
 
 
+def cookie_secure_enabled() -> bool:
+    return os.getenv("COOKIE_SECURE", "false").lower() == "true"
+
+
 def create_session_token(username: str) -> str:
     """Create a signed JWT token with username"""
     payload = {
@@ -39,7 +43,7 @@ def set_session_cookie(response: Response, username: str):
         httponly=True,
         samesite="lax",
         max_age=30 * 24 * 60 * 60,  # 30 days
-        secure=True  # HTTPS enabled!
+        secure=cookie_secure_enabled()
     )
 
 
@@ -65,4 +69,3 @@ def get_optional_username(sid: Optional[str] = Cookie(None)) -> Optional[str]:
     if not sid:
         return None
     return verify_session_token(sid)
-

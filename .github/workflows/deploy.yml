@@ -27,27 +27,17 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and push backend image
+      - name: Build and push app image
         uses: docker/build-push-action@v4
         with:
-          context: ./backend
-          file: ./backend/Dockerfile.prod
+          context: .
+          file: ./Dockerfile.prod
           push: true
-          tags: ghcr.io/${{ github.repository_owner }}/aquarium-backend:latest
-          cache-from: type=registry,ref=ghcr.io/${{ github.repository_owner }}/aquarium-backend:buildcache
-          cache-to: type=registry,ref=ghcr.io/${{ github.repository_owner }}/aquarium-backend:buildcache,mode=max
-
-      - name: Build and push frontend/nginx image
-        uses: docker/build-push-action@v4
-        with:
-          context: ./frontend
-          file: ./frontend/Dockerfile.prod
-          push: true
-          tags: ghcr.io/${{ github.repository_owner }}/aquarium-nginx:latest
+          tags: ghcr.io/${{ github.repository_owner }}/aquarium-app:latest
           build-args: |
-            VITE_API_BASE_URL=${{ secrets.VITE_API_BASE_URL }}
-          cache-from: type=registry,ref=ghcr.io/${{ github.repository_owner }}/aquarium-nginx:buildcache
-          cache-to: type=registry,ref=ghcr.io/${{ github.repository_owner }}/aquarium-nginx:buildcache,mode=max
+            VITE_API_BASE_URL=/api
+          cache-from: type=registry,ref=ghcr.io/${{ github.repository_owner }}/aquarium-app:buildcache
+          cache-to: type=registry,ref=ghcr.io/${{ github.repository_owner }}/aquarium-app:buildcache,mode=max
 
       - name: Deploy to Lightsail
         uses: appleboy/ssh-action@master
@@ -65,19 +55,18 @@ jobs:
             
             # Create .env file with secrets
             cat > .env << EOF
-            MONGO_ROOT_USERNAME=${{ secrets.MONGO_ROOT_USERNAME }}
-            MONGO_ROOT_PASSWORD=${{ secrets.MONGO_ROOT_PASSWORD }}
             JWT_SECRET=${{ secrets.JWT_SECRET }}
-            VITE_API_BASE_URL=${{ secrets.VITE_API_BASE_URL }}
             DOCKER_REGISTRY=ghcr.io/${{ github.repository_owner }}
+            APP_PORT=80
+            COOKIE_SECURE=true
+            ALLOWED_ORIGIN=https://aquarium.annabelgoldman.com
             EOF
             
             # Stop existing containers
             docker-compose -f docker-compose.prod.yml down
             
             # Pull latest images from GitHub Container Registry
-            docker pull ghcr.io/${{ github.repository_owner }}/aquarium-backend:latest
-            docker pull ghcr.io/${{ github.repository_owner }}/aquarium-nginx:latest
+            docker pull ghcr.io/${{ github.repository_owner }}/aquarium-app:latest
             
             # Start containers with pre-built images
             docker-compose -f docker-compose.prod.yml up -d

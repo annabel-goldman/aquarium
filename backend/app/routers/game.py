@@ -5,7 +5,7 @@ Handles tank view, feeding, cleaning, and game tick updates
 
 from fastapi import APIRouter, Depends, HTTPException
 from app.auth import get_current_username
-from app.database import get_database
+from app.database import get_user, save_user
 from app.models import (
     GameStateResponse, FeedResponse, CleanResponse,
     FishResponse, FishCreate, FishAccessories,
@@ -55,10 +55,7 @@ def fish_to_response(fish: dict) -> dict:
 
 async def get_or_create_user_game(username: str) -> dict:
     """Get user with game state, migrating from legacy if needed"""
-    db = get_database()
-    users = db.users
-    
-    user = await users.find_one({"username": username})
+    user = await get_user(username)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     
@@ -72,9 +69,6 @@ async def get_or_create_user_game(username: str) -> dict:
 
 async def migrate_user_to_game(legacy_user: dict) -> dict:
     """Migrate a legacy multi-tank user to single-tank game format"""
-    db = get_database()
-    users = db.users
-    
     # Gather all fish from all tanks
     all_fish = []
     for tank in legacy_user.get("tanks", []):
@@ -108,17 +102,12 @@ async def migrate_user_to_game(legacy_user: dict) -> dict:
         "updatedAt": now
     }
     
-    # Update user in database
-    await users.update_one(
-        {"username": legacy_user["username"]},
-        {
-            "$set": game_update,
-            "$unset": {"tanks": ""}  # Remove old tanks field
-        }
-    )
+    migrated = {**legacy_user, **game_update}
+    migrated.pop("tanks", None)
+    await save_user(migrated)
     
     # Return updated user
-    return {**legacy_user, **game_update}
+    return migrated
 
 
 @router.get("/game", response_model=GameStateResponse)
@@ -128,7 +117,14 @@ async def get_game_state(username: str = Depends(get_current_username)):
     
     tank = user.get("tank", {})
     hunger = tank.get("hunger", 100)
-    cleanliness = tank.get("cleanliness", 100)
+    
+    # Always recalculate cleanliness based on actual poop count for consistency
+    poop_positions = tank.get("poopPositions", [])
+    poop_penalty = len(poop_positions) * POOP_CLEANLINESS_PENALTY
+    cleanliness = max(0, 100 - poop_penalty)
+    
+    # Update tank with recalculated cleanliness
+    tank["cleanliness"] = cleanliness
     
     return {
         "gameState": user["gameState"],
@@ -146,9 +142,6 @@ async def game_tick(username: str = Depends(get_current_username)):
     Called periodically by the frontend during active play.
     Updates: hunger decay, poop generation
     """
-    db = get_database()
-    users = db.users
-    
     user = await get_or_create_user_game(username)
     now = now_utc()
     
@@ -195,18 +188,13 @@ async def game_tick(username: str = Depends(get_current_username)):
     # --- Happiness ---
     happiness = calculate_happiness(new_hunger, new_cleanliness)
     
-    # Update database
-    await users.update_one(
-        {"username": username},
-        {"$set": {
-            "gameState.lastActiveAt": now,
-            "tank.hunger": new_hunger,
-            "tank.cleanliness": new_cleanliness,
-            "tank.poopPositions": poop_positions,
-            "tank.lastPoopTime": last_poop,
-            "updatedAt": now
-        }}
-    )
+    user["gameState"]["lastActiveAt"] = now
+    user["tank"]["hunger"] = new_hunger
+    user["tank"]["cleanliness"] = new_cleanliness
+    user["tank"]["poopPositions"] = poop_positions
+    user["tank"]["lastPoopTime"] = last_poop
+    user["updatedAt"] = now
+    await save_user(user)
     
     return {
         "hunger": new_hunger,
@@ -214,16 +202,14 @@ async def game_tick(username: str = Depends(get_current_username)):
         "happiness": happiness,
         "coins": game_state.get("coins", 0),
         "maxFish": game_state.get("maxFish", STARTING_MAX_FISH),
-        "poopCount": len(poop_positions)
+        "poopCount": len(poop_positions),
+        "poopPositions": poop_positions,
     }
 
 
 @router.post("/game/feed", response_model=FeedResponse)
 async def feed_tank(username: str = Depends(get_current_username)):
     """Feed all fish in the tank"""
-    db = get_database()
-    users = db.users
-    
     user = await get_or_create_user_game(username)
     
     game_state = user["gameState"]
@@ -237,14 +223,10 @@ async def feed_tank(username: str = Depends(get_current_username)):
     new_hunger = min(100, hunger + HUNGER_FEED_RESTORE)
     new_coins = coins - FEED_COST
     
-    await users.update_one(
-        {"username": username},
-        {"$set": {
-            "tank.hunger": new_hunger,
-            "gameState.coins": new_coins,
-            "updatedAt": now_utc()
-        }}
-    )
+    user["tank"]["hunger"] = new_hunger
+    user["gameState"]["coins"] = new_coins
+    user["updatedAt"] = now_utc()
+    await save_user(user)
     
     return {
         "success": True,
@@ -257,22 +239,15 @@ async def feed_tank(username: str = Depends(get_current_username)):
 @router.post("/game/clean", response_model=CleanResponse)
 async def clean_tank(username: str = Depends(get_current_username)):
     """Clean all poop from the tank"""
-    db = get_database()
-    users = db.users
-    
     user = await get_or_create_user_game(username)
     tank = user["tank"]
     
     poop_count = len(tank.get("poopPositions", []))
     
-    await users.update_one(
-        {"username": username},
-        {"$set": {
-            "tank.poopPositions": [],
-            "tank.cleanliness": 100.0,
-            "updatedAt": now_utc()
-        }}
-    )
+    user["tank"]["poopPositions"] = []
+    user["tank"]["cleanliness"] = 100.0
+    user["updatedAt"] = now_utc()
+    await save_user(user)
     
     return {
         "success": True,
@@ -284,9 +259,6 @@ async def clean_tank(username: str = Depends(get_current_username)):
 @router.delete("/game/poop/{poop_id}")
 async def clean_single_poop(poop_id: str, username: str = Depends(get_current_username)):
     """Remove a single poop by clicking on it"""
-    db = get_database()
-    users = db.users
-    
     user = await get_or_create_user_game(username)
     tank = user["tank"]
     
@@ -294,14 +266,12 @@ async def clean_single_poop(poop_id: str, username: str = Depends(get_current_us
     poop_penalty = len(poop_positions) * POOP_CLEANLINESS_PENALTY
     new_cleanliness = max(0, 100 - poop_penalty)
     
-    result = await users.update_one(
-        {"username": username},
-        {"$set": {
-            "tank.poopPositions": poop_positions,
-            "tank.cleanliness": new_cleanliness,
-            "updatedAt": now_utc()
-        }}
-    )
+    if len(poop_positions) == len(tank.get("poopPositions", [])):
+        raise HTTPException(status_code=404, detail="Poop not found")
+    user["tank"]["poopPositions"] = poop_positions
+    user["tank"]["cleanliness"] = new_cleanliness
+    user["updatedAt"] = now_utc()
+    await save_user(user)
     
     return {
         "success": True,
@@ -313,20 +283,13 @@ async def clean_single_poop(poop_id: str, username: str = Depends(get_current_us
 @router.post("/game/coins")
 async def add_coins(amount: int, username: str = Depends(get_current_username)):
     """Add coins to the user's balance (e.g., from collecting coins in the lake)"""
-    db = get_database()
-    users = db.users
-    
     user = await get_or_create_user_game(username)
     current_coins = user.get("gameState", {}).get("coins", 0)
     new_coins = current_coins + amount
     
-    await users.update_one(
-        {"username": username},
-        {"$set": {
-            "gameState.coins": new_coins,
-            "updatedAt": now_utc()
-        }}
-    )
+    user["gameState"]["coins"] = new_coins
+    user["updatedAt"] = now_utc()
+    await save_user(user)
     
     return {
         "success": True,
@@ -338,9 +301,6 @@ async def add_coins(amount: int, username: str = Depends(get_current_username)):
 @router.post("/fish", response_model=FishResponse)
 async def add_fish(fish_data: FishCreate, username: str = Depends(get_current_username)):
     """Manually add a fish to the tank (for testing/debug)"""
-    db = get_database()
-    users = db.users
-    
     user = await get_or_create_user_game(username)
     
     current_fish = len(user.get("fish", []))
@@ -360,13 +320,9 @@ async def add_fish(fish_data: FishCreate, username: str = Depends(get_current_us
         "createdAt": now_utc()
     }
     
-    await users.update_one(
-        {"username": username},
-        {
-            "$push": {"fish": new_fish},
-            "$set": {"updatedAt": now_utc()}
-        }
-    )
+    user["fish"] = user.get("fish", []) + [new_fish]
+    user["updatedAt"] = now_utc()
+    await save_user(user)
     
     return fish_to_response(new_fish)
 
@@ -374,19 +330,16 @@ async def add_fish(fish_data: FishCreate, username: str = Depends(get_current_us
 @router.delete("/fish/{fish_id}")
 async def release_fish(fish_id: str, username: str = Depends(get_current_username)):
     """Release a fish from the tank"""
-    db = get_database()
-    users = db.users
+    user = await get_or_create_user_game(username)
+    fish = user.get("fish", [])
+    updated_fish = [f for f in fish if f["id"] != fish_id]
     
-    result = await users.update_one(
-        {"username": username},
-        {
-            "$pull": {"fish": {"id": fish_id}},
-            "$set": {"updatedAt": now_utc()}
-        }
-    )
-    
-    if result.modified_count == 0:
+    if len(updated_fish) == len(fish):
         raise HTTPException(status_code=404, detail="Fish not found")
+    
+    user["fish"] = updated_fish
+    user["updatedAt"] = now_utc()
+    await save_user(user)
     
     return {"success": True, "fishId": fish_id}
 
@@ -398,9 +351,6 @@ async def apply_accessory(
     username: str = Depends(get_current_username)
 ):
     """Apply an accessory to a fish"""
-    db = get_database()
-    users = db.users
-    
     user = await get_or_create_user_game(username)
     
     # Validate slot
@@ -433,12 +383,8 @@ async def apply_accessory(
     if not fish_found:
         raise HTTPException(status_code=404, detail="Fish not found")
     
-    await users.update_one(
-        {"username": username},
-        {"$set": {
-            "fish": fish_list,
-            "updatedAt": now_utc()
-        }}
-    )
+    user["fish"] = fish_list
+    user["updatedAt"] = now_utc()
+    await save_user(user)
     
     return {"success": True, "fishId": fish_id, "slot": request.slot, "itemId": request.itemId}

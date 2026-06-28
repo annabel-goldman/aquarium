@@ -75,13 +75,25 @@ export function useLocalGame() {
       const stored = localStorage.getItem(LOCAL_GAME_KEY);
       if (stored) {
         const data = JSON.parse(stored);
+        
+        // Recalculate cleanliness based on actual poop count for consistency
+        const poopPositions = data.tank?.poopPositions || [];
+        const poopPenalty = poopPositions.length * POOP_CLEANLINESS_PENALTY;
+        const recalculatedCleanliness = Math.max(0, 100 - poopPenalty);
+        
+        // Update tank with recalculated cleanliness
+        const correctedTank = {
+          ...data.tank,
+          cleanliness: recalculatedCleanliness,
+        };
+        
         setGameState(data.gameState);
-        setTank(data.tank);
+        setTank(correctedTank);
         setFish(data.fish || []);
         setOwnedAccessories(data.gameState?.ownedAccessories || []);
         setHappiness(calculateHappiness(
           data.tank?.hunger || 100,
-          data.tank?.cleanliness || 100
+          recalculatedCleanliness
         ));
       } else {
         // Initialize with default state
@@ -116,6 +128,10 @@ export function useLocalGame() {
 
   // Game tick - update hunger, poop (mimics backend logic)
   const gameTick = useCallback(() => {
+    if (document.visibilityState !== 'visible') {
+      return;
+    }
+
     // Debounce: prevent ticks more frequent than tickDebounceMs
     const nowTime = Date.now();
     const timeSinceLastTick = nowTime - lastTickRef.current;
@@ -555,4 +571,3 @@ export function getLocalGameState() {
 export function clearLocalGameState() {
   localStorage.removeItem(LOCAL_GAME_KEY);
 }
-

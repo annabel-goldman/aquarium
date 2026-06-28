@@ -4,7 +4,7 @@ Shop Router - Cosmetics and accessories shop
 
 from fastapi import APIRouter, Depends, HTTPException
 from app.auth import get_current_username
-from app.database import get_database
+from app.database import get_user, save_user
 from app.models import ShopItem, now_utc
 from app.game_config import SHOP_ITEMS
 
@@ -14,10 +14,7 @@ router = APIRouter()
 @router.get("/shop/items")
 async def list_shop_items(username: str = Depends(get_current_username)):
     """Get all shop items with ownership status"""
-    db = get_database()
-    users = db.users
-    
-    user = await users.find_one({"username": username})
+    user = await get_user(username)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     
@@ -57,9 +54,6 @@ async def list_shop_items(username: str = Depends(get_current_username)):
 @router.post("/shop/buy/{item_id}")
 async def purchase_item(item_id: str, username: str = Depends(get_current_username)):
     """Purchase an item from the shop"""
-    db = get_database()
-    users = db.users
-    
     # Validate item exists
     if item_id not in SHOP_ITEMS:
         raise HTTPException(status_code=404, detail="Item not found")
@@ -70,7 +64,7 @@ async def purchase_item(item_id: str, username: str = Depends(get_current_userna
     if item.get("catchOnly", False):
         raise HTTPException(status_code=400, detail="This item can only be obtained by fishing!")
     
-    user = await users.find_one({"username": username})
+    user = await get_user(username)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     
@@ -90,14 +84,10 @@ async def purchase_item(item_id: str, username: str = Depends(get_current_userna
     new_coins = current_coins - item["price"]
     owned.append(item_id)
     
-    await users.update_one(
-        {"username": username},
-        {"$set": {
-            "gameState.coins": new_coins,
-            "ownedAccessories": owned,
-            "updatedAt": now_utc()
-        }}
-    )
+    user["gameState"]["coins"] = new_coins
+    user["ownedAccessories"] = owned
+    user["updatedAt"] = now_utc()
+    await save_user(user)
     
     return {
         "success": True,
@@ -112,10 +102,7 @@ async def purchase_item(item_id: str, username: str = Depends(get_current_userna
 @router.get("/shop/owned")
 async def get_owned_items(username: str = Depends(get_current_username)):
     """Get all items owned by the user, organized by category"""
-    db = get_database()
-    users = db.users
-    
-    user = await users.find_one({"username": username})
+    user = await get_user(username)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     
