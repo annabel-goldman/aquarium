@@ -315,7 +315,7 @@ export function LakePage({ username, isAuthenticated }) {
       return false;
     }
   });
-  const [isTutorialOpen, setIsTutorialOpen] = useState(false);
+  const [isTutorialOpen, setIsTutorialOpen] = useState(() => !isAuthenticated && !hasSeenTutorial);
   
   const spawnTimerRef = useRef(null);
   const coinTimerRef = useRef(null);
@@ -336,6 +336,11 @@ export function LakePage({ username, isAuthenticated }) {
   }, [tutorialStorageKey]);
 
   useEffect(() => {
+    if (!isAuthenticated && !hasSeenTutorial) {
+      setIsTutorialOpen(true);
+      return;
+    }
+
     if (!game.loading && !hasSeenTutorial && (tankFish.length === 0 || !isAuthenticated)) {
       setIsTutorialOpen(true);
     }

@@ -17,7 +17,13 @@ import {
 const LOCAL_GAME_KEY = 'aquarium_local_game_state';
 
 // Generate UUID using browser's built-in crypto API
-const generateId = () => crypto.randomUUID();
+const generateId = () => {
+  if (globalThis.crypto?.randomUUID) {
+    return globalThis.crypto.randomUUID();
+  }
+
+  return `local-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+};
 
 /**
  * Get current timestamp in ISO format

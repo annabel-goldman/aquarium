@@ -18,7 +18,13 @@ import {
   RARITY_COIN_VALUES,
 } from '../config/gameBalance';
 
-const generateId = () => crypto.randomUUID();
+const generateId = () => {
+  if (globalThis.crypto?.randomUUID) {
+    return globalThis.crypto.randomUUID();
+  }
+
+  return `local-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+};
 
 /**
  * Pick a random item from array
@@ -123,4 +129,3 @@ export function useLocalFishing() {
     attemptCatch,
   };
 }
-
