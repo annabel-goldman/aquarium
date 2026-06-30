@@ -48,7 +48,7 @@ app.include_router(shop.router, prefix="/api", tags=["shop"])
 async def root():
     static_index = Path(os.getenv("STATIC_DIR", "/app/static")) / "index.html"
     if static_index.exists():
-        return FileResponse(static_index)
+        return FileResponse(static_index, headers={"Cache-Control": "no-cache"})
     return {"status": "ok", "version": "3.0", "name": "Cozy Aquarium Game"}
 
 
@@ -71,6 +71,12 @@ async def serve_spa(full_path: str):
         raise HTTPException(status_code=404, detail="Not found")
 
     if requested.is_file() and static_dir in requested.parents:
-        return FileResponse(requested)
+        headers = {}
+        if full_path.startswith("assets/"):
+            headers["Cache-Control"] = "public, max-age=31536000, immutable"
+        return FileResponse(requested, headers=headers)
 
-    return FileResponse(index_file)
+    if full_path.startswith("assets/"):
+        raise HTTPException(status_code=404, detail="Asset not found")
+
+    return FileResponse(index_file, headers={"Cache-Control": "no-cache"})
