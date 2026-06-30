@@ -63,15 +63,15 @@ function App() {
             element={<ShopPage username={username} isAuthenticated={isAuthenticated} />}
           />
           
-          {/* Default route - guests start at the lake, returning players at the tank */}
+          {/* Default route - start everyone at the lake */}
           <Route
             path="/"
-            element={<Navigate to={isAuthenticated ? '/tank' : '/lake'} replace />}
+            element={<Navigate to="/lake" replace />}
           />
           
           {/* Legacy redirects */}
           <Route path="/guest" element={<Navigate to="/lake" replace />} />
-          <Route path="/aquarium" element={<Navigate to={isAuthenticated ? '/tank' : '/lake'} replace />} />
+          <Route path="/aquarium" element={<Navigate to="/lake" replace />} />
           <Route path="/tanks/:tankId" element={<Navigate to="/tank" replace />} />
         </Routes>
       </Suspense>
