@@ -1,0 +1,9 @@
+http://{$DOMAIN:aquarium.annabelgoldman.com} {
+	encode gzip
+	reverse_proxy app:8000
+}
+
+https://{$DOMAIN:aquarium.annabelgoldman.com} {
+	encode gzip
+	reverse_proxy app:8000
+}

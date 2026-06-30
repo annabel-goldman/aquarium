@@ -8,8 +8,8 @@ services:
     image: ${DOCKER_REGISTRY:-local}/aquarium-app:latest
     container_name: aquarium-app
     restart: unless-stopped
-    ports:
-      - "${APP_PORT:-80}:8000"
+    expose:
+      - "8000"
     environment:
       - SQLITE_PATH=/data/aquarium.sqlite
       - STATIC_DIR=/app/static
@@ -26,6 +26,32 @@ services:
         reservations:
           memory: 60M
 
+  caddy:
+    image: caddy:2-alpine
+    container_name: aquarium-caddy
+    restart: unless-stopped
+    depends_on:
+      - app
+    ports:
+      - "${APP_PORT:-80}:80"
+      - "${HTTPS_PORT:-443}:443"
+    environment:
+      - DOMAIN=${DOMAIN:-aquarium.annabelgoldman.com}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    deploy:
+      resources:
+        limits:
+          memory: 80M
+        reservations:
+          memory: 20M
+
 volumes:
   aquarium_data:
+    driver: local
+  caddy_data:
+    driver: local
+  caddy_config:
     driver: local
