@@ -148,6 +148,176 @@
   opacity: 1;
 }
 
+.lake-help-btn {
+  position: absolute;
+  right: 1rem;
+  bottom: 5.5rem;
+  width: 42px;
+  height: 42px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.88);
+  color: #1f2937;
+  font-size: 1.1rem;
+  font-weight: 800;
+  line-height: 1;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.22);
+  cursor: pointer;
+  z-index: 40;
+  transition: transform 0.12s ease, background 0.12s ease;
+}
+
+.lake-help-btn:hover {
+  background: white;
+  transform: translateY(-1px);
+}
+
+.lake-help-btn:active {
+  transform: scale(0.95);
+}
+
+.lake-tutorial-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 260;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.25rem;
+  background: rgba(5, 20, 35, 0.5);
+  backdrop-filter: blur(3px);
+  animation: fadeIn 0.2s ease;
+}
+
+.lake-tutorial-panel {
+  width: min(92vw, 390px);
+  background: rgba(255, 255, 255, 0.96);
+  color: #1f2937;
+  border-radius: 18px;
+  padding: 1.35rem;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.36);
+  text-align: left;
+}
+
+.lake-tutorial-progress {
+  color: #2563eb;
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  margin-bottom: 0.45rem;
+}
+
+.lake-tutorial-panel h2 {
+  margin: 0;
+  color: #111827;
+  font-size: 1.35rem;
+  line-height: 1.2;
+}
+
+.lake-tutorial-panel p {
+  margin: 0.75rem 0 0;
+  color: #4b5563;
+  font-size: 0.98rem;
+  line-height: 1.45;
+}
+
+.lake-tutorial-dots {
+  display: flex;
+  gap: 0.4rem;
+  margin: 1rem 0 1.25rem;
+}
+
+.lake-tutorial-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #cbd5e1;
+}
+
+.lake-tutorial-dot.active {
+  width: 22px;
+  border-radius: 999px;
+  background: #2563eb;
+}
+
+.lake-tutorial-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.lake-tutorial-step-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.tutorial-skip-btn,
+.tutorial-secondary-btn,
+.tutorial-primary-btn {
+  min-height: 40px;
+  border: none;
+  border-radius: 12px;
+  padding: 0 1rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.12s ease, background 0.12s ease;
+}
+
+.tutorial-skip-btn,
+.tutorial-secondary-btn {
+  background: #eef2f7;
+  color: #475569;
+}
+
+.tutorial-primary-btn {
+  background: #2563eb;
+  color: white;
+  box-shadow: 0 8px 18px rgba(37, 99, 235, 0.28);
+}
+
+.tutorial-skip-btn:hover,
+.tutorial-secondary-btn:hover {
+  background: #e2e8f0;
+}
+
+.tutorial-primary-btn:hover {
+  background: #1d4ed8;
+}
+
+.tutorial-skip-btn:active,
+.tutorial-secondary-btn:active,
+.tutorial-primary-btn:active {
+  transform: scale(0.97);
+}
+
+@media (max-width: 520px) {
+  .lake-help-btn {
+    right: 0.75rem;
+    bottom: 5.1rem;
+  }
+
+  .lake-tutorial-overlay {
+    align-items: flex-end;
+    padding: 1rem 1rem 5.7rem;
+  }
+
+  .lake-tutorial-panel {
+    width: 100%;
+    padding: 1.15rem;
+  }
+
+  .lake-tutorial-actions {
+    align-items: stretch;
+  }
+
+  .lake-tutorial-step-actions {
+    flex: 1;
+    justify-content: flex-end;
+  }
+}
+
 /* ============================================
    FLOATING COINS
    ============================================ */

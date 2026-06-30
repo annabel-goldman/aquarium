@@ -9,6 +9,73 @@ import { FishShadowSprite } from '../components/FishShadowSprite';
 import { RARITY_CONFIG, FISH_SIZE_CONFIG, FISHING_CONFIG, COIN_CONFIG } from '../config/constants';
 import '../styles/pages/lake.css';
 
+const TUTORIAL_STORAGE_PREFIX = 'aquarium_tutorial_seen_v1';
+
+const tutorialSteps = [
+  {
+    title: 'Start at the Lake',
+    body: 'Tap the fish shadows as they swim by. Some catches are fish, some are treasure, and some are just lake junk.',
+  },
+  {
+    title: 'Keep or Release',
+    body: 'When you catch a fish, add it to your tank or release it for coins. Coins also drift through the lake.',
+  },
+  {
+    title: 'Care for the Tank',
+    body: 'Use the Tank tab to feed your fish and clean up. The Closet and Shop tabs unlock more ways to personalize them.',
+  },
+  {
+    title: 'Save Anytime',
+    body: 'You can play as a guest right away. Log in later to save this browser progress to your account.',
+  },
+];
+
+function LakeTutorial({ isOpen, stepIndex, isAuthenticated, onNext, onBack, onClose }) {
+  if (!isOpen) return null;
+
+  const step = tutorialSteps[stepIndex];
+  const isLastStep = stepIndex === tutorialSteps.length - 1;
+  const progress = `${stepIndex + 1} / ${tutorialSteps.length}`;
+  const body = isAuthenticated && stepIndex === 3
+    ? 'Your progress is saved to your account. Jump between Lake, Tank, Closet, and Shop whenever you want.'
+    : step.body;
+
+  return (
+    <div className="lake-tutorial-overlay" role="dialog" aria-modal="true" aria-labelledby="lake-tutorial-title">
+      <div className="lake-tutorial-panel">
+        <div className="lake-tutorial-progress">{progress}</div>
+        <h2 id="lake-tutorial-title">{step.title}</h2>
+        <p>{body}</p>
+
+        <div className="lake-tutorial-dots" aria-hidden="true">
+          {tutorialSteps.map((_, index) => (
+            <span
+              key={index}
+              className={`lake-tutorial-dot ${index === stepIndex ? 'active' : ''}`}
+            />
+          ))}
+        </div>
+
+        <div className="lake-tutorial-actions">
+          <button type="button" className="tutorial-skip-btn" onClick={onClose}>
+            Skip
+          </button>
+          <div className="lake-tutorial-step-actions">
+            {stepIndex > 0 && (
+              <button type="button" className="tutorial-secondary-btn" onClick={onBack}>
+                Back
+              </button>
+            )}
+            <button type="button" className="tutorial-primary-btn" onClick={isLastStep ? onClose : onNext}>
+              {isLastStep ? 'Start Fishing' : 'Next'}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /**
  * Fish silhouette using actual fish sprite as shadow
  */
@@ -239,6 +306,16 @@ export function LakePage({ username, isAuthenticated }) {
   const [catchResult, setCatchResult] = useState(null);
   const [ripple, setRipple] = useState(null);
   const [isPageVisible, setIsPageVisible] = useState(() => document.visibilityState === 'visible');
+  const [tutorialStep, setTutorialStep] = useState(0);
+  const tutorialStorageKey = `${TUTORIAL_STORAGE_PREFIX}:${username || 'guest'}`;
+  const [hasSeenTutorial, setHasSeenTutorial] = useState(() => {
+    try {
+      return localStorage.getItem(tutorialStorageKey) === 'true';
+    } catch {
+      return false;
+    }
+  });
+  const [isTutorialOpen, setIsTutorialOpen] = useState(false);
   
   const spawnTimerRef = useRef(null);
   const coinTimerRef = useRef(null);
@@ -247,6 +324,33 @@ export function LakePage({ username, isAuthenticated }) {
   const coins = game.gameState?.coins || 0;
   const tankFish = game.fish || [];
   const maxFish = game.gameState?.maxFish || 10;
+
+  useEffect(() => {
+    try {
+      const seen = localStorage.getItem(tutorialStorageKey) === 'true';
+      setHasSeenTutorial(seen);
+      setTutorialStep(0);
+    } catch {
+      setHasSeenTutorial(false);
+    }
+  }, [tutorialStorageKey]);
+
+  useEffect(() => {
+    if (!game.loading && !hasSeenTutorial && (tankFish.length === 0 || !isAuthenticated)) {
+      setIsTutorialOpen(true);
+    }
+  }, [game.loading, hasSeenTutorial, isAuthenticated, tankFish.length]);
+
+  const closeTutorial = useCallback(() => {
+    setIsTutorialOpen(false);
+    setHasSeenTutorial(true);
+    setTutorialStep(0);
+    try {
+      localStorage.setItem(tutorialStorageKey, 'true');
+    } catch {
+      // Ignore storage failures; the guide can show again next visit.
+    }
+  }, [tutorialStorageKey]);
 
   useEffect(() => {
     const handleVisibilityChange = () => {
@@ -498,9 +602,30 @@ export function LakePage({ username, isAuthenticated }) {
       <div className={`lake-tip ${catching ? 'catching' : ''}`}>
         {catching ? '🎣 Catching...' : 'Tap fish to catch • Grab coins! 🪙'}
       </div>
+
+      <button
+        type="button"
+        className="lake-help-btn"
+        onClick={() => {
+          setTutorialStep(0);
+          setIsTutorialOpen(true);
+        }}
+        aria-label="Open guide"
+      >
+        ?
+      </button>
       
       {/* Navigation */}
       <BottomNav />
+
+      <LakeTutorial
+        isOpen={isTutorialOpen}
+        stepIndex={tutorialStep}
+        isAuthenticated={isAuthenticated}
+        onNext={() => setTutorialStep(step => Math.min(step + 1, tutorialSteps.length - 1))}
+        onBack={() => setTutorialStep(step => Math.max(step - 1, 0))}
+        onClose={closeTutorial}
+      />
       
       {/* Catch Modal */}
       <CatchModal

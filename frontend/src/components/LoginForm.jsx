@@ -44,7 +44,7 @@ export function LoginForm({ onAuthenticate }) {
       
       // Navigate after a short delay to show the message
       setTimeout(() => {
-        navigate('/tank');
+        navigate(result.isNewUser ? '/lake' : '/tank');
       }, hasLocalData || result.isNewUser ? 800 : 0);
     } else {
       setError(result.error || 'Authentication failed');
@@ -53,7 +53,7 @@ export function LoginForm({ onAuthenticate }) {
   };
 
   const handlePlayWithoutAccount = () => {
-    navigate('/tank');
+    navigate('/lake');
   };
 
   return (
