@@ -127,6 +127,15 @@ export const api = {
     fetchAPI(`/fish/${fishId}`, { method: 'DELETE' }),
 
   /**
+   * Rename a fish
+   */
+  renameFish: (fishId, name) =>
+    fetchAPI(`/fish/${fishId}/name`, {
+      method: 'PATCH',
+      body: JSON.stringify({ name }),
+    }),
+
+  /**
    * Apply accessory to a fish
    */
   applyAccessory: (fishId, slot, itemId) =>

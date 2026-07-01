@@ -9,7 +9,7 @@ from app.database import get_user, save_user
 from app.models import (
     GameStateResponse, FeedResponse, CleanResponse,
     FishResponse, FishCreate, FishAccessories,
-    ApplyAccessoryRequest, now_utc, calculate_happiness
+    ApplyAccessoryRequest, RenameFishRequest, now_utc, calculate_happiness
 )
 from app.game_config import (
     HUNGER_DECAY_PER_MINUTE, HUNGER_FEED_RESTORE, FEED_COST,
@@ -342,6 +342,27 @@ async def release_fish(fish_id: str, username: str = Depends(get_current_usernam
     await save_user(user)
     
     return {"success": True, "fishId": fish_id}
+
+
+@router.patch("/fish/{fish_id}/name", response_model=FishResponse)
+async def rename_fish(
+    fish_id: str,
+    request: RenameFishRequest,
+    username: str = Depends(get_current_username)
+):
+    """Rename a fish in the tank"""
+    user = await get_or_create_user_game(username)
+    fish_list = user.get("fish", [])
+    
+    for fish in fish_list:
+        if fish["id"] == fish_id:
+            fish["name"] = request.name
+            user["fish"] = fish_list
+            user["updatedAt"] = now_utc()
+            await save_user(user)
+            return fish_to_response(fish)
+    
+    raise HTTPException(status_code=404, detail="Fish not found")
 
 
 @router.post("/fish/{fish_id}/accessory")

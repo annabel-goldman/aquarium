@@ -244,6 +244,19 @@ class ApplyAccessoryRequest(BaseModel):
     itemId: Optional[str] = None  # None to remove
 
 
+class RenameFishRequest(BaseModel):
+    """Request to rename a fish"""
+    name: str = Field(..., min_length=1, max_length=50)
+
+    @field_validator("name")
+    @classmethod
+    def validate_name(cls, v: str) -> str:
+        trimmed = v.strip()
+        if not trimmed:
+            raise ValueError("Fish name cannot be blank")
+        return trimmed
+
+
 # ============================================
 # LEGACY MODELS (for migration compatibility)
 # ============================================

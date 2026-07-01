@@ -205,6 +205,17 @@ export function useGame() {
     }
   }, []);
 
+  // Rename a fish
+  const renameFish = useCallback(async (fishId, name) => {
+    try {
+      const updatedFish = await api.renameFish(fishId, name);
+      setFish(prev => prev.map(f => (f.id === fishId ? updatedFish : f)));
+      return { success: true, fish: updatedFish };
+    } catch (err) {
+      return { success: false, error: err.message };
+    }
+  }, []);
+
   // Apply accessory to fish
   const applyAccessory = useCallback(async (fishId, slot, itemId) => {
     try {
@@ -268,6 +279,7 @@ export function useGame() {
     cleanAll,
     cleanPoop,
     releaseFish,
+    renameFish,
     applyAccessory,
     addFish,
     addCoins,

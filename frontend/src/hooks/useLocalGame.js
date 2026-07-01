@@ -383,6 +383,34 @@ export function useLocalGame() {
     return { success: true, coinsEarned: coinValue };
   }, [fish, gameState, tank, saveToLocalStorage]);
 
+  // Rename a fish
+  const renameFish = useCallback(async (fishId, name) => {
+    const trimmedName = name.trim();
+    if (!trimmedName) {
+      return { success: false, error: 'Fish name cannot be blank' };
+    }
+
+    const fishToRename = fish.find(f => f.id === fishId);
+    if (!fishToRename) {
+      return { success: false, error: 'Fish not found' };
+    }
+
+    const updatedFish = fish.map(f => (
+      f.id === fishId ? { ...f, name: trimmedName } : f
+    ));
+    const renamedFish = updatedFish.find(f => f.id === fishId);
+
+    setFish(updatedFish);
+
+    saveToLocalStorage({
+      gameState,
+      tank,
+      fish: updatedFish,
+    });
+
+    return { success: true, fish: renamedFish };
+  }, [fish, gameState, tank, saveToLocalStorage]);
+
   // Apply accessory to fish
   const applyAccessory = useCallback(async (fishId, slot, itemId) => {
     const updatedFish = fish.map(f => {
@@ -548,6 +576,7 @@ export function useLocalGame() {
     cleanAll,
     cleanPoop,
     releaseFish,
+    renameFish,
     applyAccessory,
     addFish,
     updateCoins,

@@ -51,6 +51,8 @@ function FishCard({ fish, selected, onClick }) {
 export function ClosetPage({ username, isAuthenticated }) {
   const game = useUnifiedGame(isAuthenticated);
   const [selectedFish, setSelectedFish] = useState(null);
+  const [draftName, setDraftName] = useState('');
+  const [renaming, setRenaming] = useState(false);
   const [message, setMessage] = useState(null);
   
   const fish = game.fish || [];
@@ -71,6 +73,10 @@ export function ClosetPage({ username, isAuthenticated }) {
       }
     }
   }, [fish, selectedFish?.id]);
+
+  useEffect(() => {
+    setDraftName(selectedFish?.name || '');
+  }, [selectedFish?.id, selectedFish?.name]);
   
   // Filter accessories to only show owned ones, organized by slot
   const ownedItems = ALL_ACCESSORIES.filter(item => 
@@ -103,6 +109,40 @@ export function ClosetPage({ username, isAuthenticated }) {
   const isEquipped = (item) => {
     return selectedFish?.accessories?.[item.slot] === item.id;
   };
+
+  const handleRenameFish = async (event) => {
+    event.preventDefault();
+    if (!selectedFish || renaming) return;
+
+    const newName = draftName.trim();
+    if (!newName) {
+      setMessage({ type: 'error', text: 'Name cannot be blank' });
+      setTimeout(() => setMessage(null), 1800);
+      return;
+    }
+
+    if (newName === selectedFish.name) return;
+
+    setRenaming(true);
+    const result = await game.renameFish(selectedFish.id, newName);
+    setRenaming(false);
+
+    if (result.success) {
+      setMessage({ type: 'success', text: 'Renamed!' });
+      setTimeout(() => setMessage(null), 1500);
+    } else {
+      setMessage({ type: 'error', text: result.error || 'Could not rename fish' });
+      setTimeout(() => setMessage(null), 2200);
+    }
+  };
+
+  const trimmedDraftName = draftName.trim();
+  const renameDisabled = (
+    renaming ||
+    !selectedFish ||
+    !trimmedDraftName ||
+    trimmedDraftName === selectedFish.name
+  );
 
   return (
     <GameLayout coins={coins} isAuthenticated={isAuthenticated} className="closet-page">
@@ -169,6 +209,23 @@ export function ClosetPage({ username, isAuthenticated }) {
             {selectedFish && (
               <div className="preview-container">
                 <FishPreview fish={selectedFish} />
+                <form className="rename-fish-form" onSubmit={handleRenameFish}>
+                  <input
+                    className="rename-fish-input"
+                    type="text"
+                    value={draftName}
+                    onChange={(event) => setDraftName(event.target.value)}
+                    maxLength={50}
+                    aria-label="Fish name"
+                  />
+                  <button
+                    className="rename-fish-button"
+                    type="submit"
+                    disabled={renameDisabled}
+                  >
+                    {renaming ? 'Saving...' : 'Rename'}
+                  </button>
+                </form>
               </div>
             )}
           </div>
