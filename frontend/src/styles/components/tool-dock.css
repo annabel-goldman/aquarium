@@ -143,6 +143,7 @@
 @media (max-width: 480px) {
   .tool-dock {
     left: 0.5rem;
+    right: auto;
     gap: 0.5rem;
   }
   
@@ -164,4 +165,3 @@
     font-size: 0.55rem;
   }
 }
-
